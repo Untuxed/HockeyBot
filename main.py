@@ -113,4 +113,4 @@ async def viewStats(interaction: discord.Interaction, member: discord.Member, st
     await interaction.response.send_message('Player or stat does not exist')
 
 
-client.run('MTIxODMwMDc3MTMxODM3MDM5NQ.GgkCox.i-4ACLpP8PzYpjL82QR1UwmJwDH38BT49QMhn0')
+client.run('')
