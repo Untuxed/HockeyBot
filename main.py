@@ -113,4 +113,23 @@ async def viewStats(interaction: discord.Interaction, member: discord.Member, st
     await interaction.response.send_message('Player or stat does not exist')
 
 
+@tree.command(name='edit-stats', description='Edits a players stats', guild=GUILD_ID)
+async def editStats(interaction: discord.Interaction, member: discord.Member, stat: str = None, new_value: str = None):
+    memberID = member.id
+    if not stat.upper() == 'PLAYER NAME' or not stat.upper() == 'POSITION':
+        new_value = int(new_value)
+    for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
+        if memberID == ID and stat.upper() in voodooTeam:
+            oldStatValue = voodooTeam[stat.upper()][i]
+            voodooTeam[stat.upper()][i] = new_value
+            await interaction.response.send_message(
+                'Changed ' + stat.lower() + f' from {oldStatValue} to {voodooTeam[stat.upper()][i]} for player '
+                                            f'{voodooTeam["PLAYER NAME"][i]}')
+            with open('./VoodooRoster.json', 'w') as f:
+                f.write(json.dumps(voodooTeam))
+            return
+
+    await interaction.response.send_message('Player or stat does not exist')
+
+
 client.run('')
