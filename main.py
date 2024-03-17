@@ -5,9 +5,7 @@ import os
 import pickle
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-
-global attendees
-attendees = []
+import re
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -23,7 +21,8 @@ creds = ServiceAccountCredentials.from_json_keyfile_name(
 )
 
 client = gspread.authorize(creds)
-sheet = client.open('VoodooSpring2024Lineup').sheet1
+googleDoc = client.open('VoodooSpring2024Lineup')
+sheet = googleDoc.get_worksheet(0)
 
 hockeyBot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(hockeyBot)
@@ -46,6 +45,7 @@ else:
         'PIMS': []
     }
 
+
 @hockeyBot.event
 async def on_ready():
     print(f'{hockeyBot.user.name} has connected to Discord!')
@@ -60,7 +60,6 @@ async def on_message(message):
     for embed in message.embeds:
         with open('object.pickle', 'wb') as f:
             pickle.dump(embed, f)
-        print(embed._footer)
 
     if message.author == 'sesh':
         print(message)
@@ -76,11 +75,14 @@ async def on_message(message):
 # TODO: add player to google sheet (yes's and maybe's, separate by position pref)
 # TODO: save completed lines and then /command read from spreadsheet and create jpeg
 @hockeyBot.event
-async def on_message_edit(before, _):
-    if before.author == 'sesh#1244':
-        attendees = 1
-        sheet.append_row(values)
-    print(before.author)
+async def on_message_edit(_, after):
+    if str(after.author) == 'sesh#1244':
+        sheet.batch_clear(["A2:A30"])
+        attendees = after.embeds[0].fields[1].value
+        attendees = re.findall(r'\d+', str(attendees))
+        for i, id in enumerate(attendees):
+            index = voodooTeam["DISCORD USER ID"].index(int(id))
+            sheet.update_cell(i+2, 1, voodooTeam["PLAYER NAME"][index])
 
 
 @hockeyBot.event
@@ -148,6 +150,12 @@ async def viewStats(interaction: discord.Interaction, member: discord.Member, st
     await interaction.response.send_message('Player or stat does not exist')
 
 
+@tree.command(name='sheet-clear-players', description='(WIP) Clears all players from RSVP list', guild=GUILD_ID)
+async def clearRSVPs(interaction: discord.Interaction):
+    sheet.batch_clear(["A2:A30"])
+    await interaction.response.send_message('Cleared RSVP list, I hope you meant to do that.')
+
+
 @tree.command(name='edit-stats', description='Edits a players stats', guild=GUILD_ID)
 async def editStats(interaction: discord.Interaction, member: discord.Member, stat: str = None, new_value: str = None):
     memberID = member.id
@@ -166,5 +174,5 @@ async def editStats(interaction: discord.Interaction, member: discord.Member, st
 
     await interaction.response.send_message('Player or stat does not exist')
 
-
+# token
 hockeyBot.run('')
