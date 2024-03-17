@@ -1,3 +1,8 @@
+# TODO: Fix usage with polls
+# TODO: change getworksheet to be by name
+# TODO: add player to google sheet (yes's and maybe's, separate by position pref)
+# TODO: save completed lines and then /command read from spreadsheet and create jpeg
+# TODO: Bulk edit stats
 import discord
 from discord import app_commands
 import json
@@ -6,6 +11,7 @@ import pickle
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import re
+from tabulate import tabulate
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -23,6 +29,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_name(
 client = gspread.authorize(creds)
 googleDoc = client.open('VoodooSpring2024Lineup')
 sheet = googleDoc.get_worksheet(0)
+botSheet = googleDoc.get_worksheet(1)
 
 hockeyBot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(hockeyBot)
@@ -37,6 +44,10 @@ else:
         'PLAYER NAME': [],
         'POSITION': [],
         'DISCORD USER ID': [],
+        'STATUS': [],
+        'IS_CAPTAIN': [],
+        'HANDEDNESS': [],
+        'NUMBER': [],
         'GP': [],
         'GOALS': [],
         'ASSISTS': [],
@@ -71,18 +82,72 @@ async def on_message(message):
         await message.add_reaction("🤩")
 
 
-# TODO: get list of confirmed players from sesh message on edit
-# TODO: add player to google sheet (yes's and maybe's, separate by position pref)
-# TODO: save completed lines and then /command read from spreadsheet and create jpeg
 @hockeyBot.event
 async def on_message_edit(_, after):
+    def column_index_to_letter(numericalIndex):
+        dividend = numericalIndex
+        column_letter = ''
+        while dividend > 0:
+            modulo = (dividend - 1) % 26
+            column_letter = chr(65 + modulo) + column_letter
+            dividend = (dividend - modulo) // 26
+        return column_letter
+
     if str(after.author) == 'sesh#1244':
-        sheet.batch_clear(["A2:A30"])
-        attendees = after.embeds[0].fields[1].value
-        attendees = re.findall(r'\d+', str(attendees))
-        for i, id in enumerate(attendees):
+        embedded_data = after.embeds[0]
+        time = re.search(r'\d+', str(embedded_data.fields[0].value)).group()
+
+        currentScheduledGames = botSheet.row_values(2)
+
+        if not currentScheduledGames:
+            j = -1
+
+        for j, gameTime in enumerate(currentScheduledGames):
+            if time == gameTime:
+                colLetter = column_index_to_letter(j+1)
+
+                confirmedSheetRange = [colLetter+'3:'+colLetter+'18']
+                botSheet.batch_clear(confirmedSheetRange)
+
+                maybeSheetRange = [colLetter+'20:'+colLetter+'25']
+                botSheet.batch_clear(maybeSheetRange)
+
+                confirmedPlayers = embedded_data.fields[1].value
+                confirmedPlayers = re.findall(r'\d+', str(confirmedPlayers))
+
+                maybePlayers = embedded_data.fields[2].value
+                maybePlayers = re.findall(r'\d+', str(maybePlayers))
+
+                for i, id in enumerate(confirmedPlayers):
+                    index = voodooTeam["DISCORD USER ID"].index(int(id))
+                    botSheet.update_cell(i+3, j+1, voodooTeam["PLAYER NAME"][index])
+                for i, id in enumerate(maybePlayers):
+                    index = voodooTeam["DISCORD USER ID"].index(int(id))
+                    botSheet.update_cell(i+20, j+1, voodooTeam["PLAYER NAME"][index])
+                return
+
+        colLetter = column_index_to_letter(j+2)
+        botSheet.update_cell(2, j+2, time)
+
+        confirmedSheetRange = [colLetter + '3:' + colLetter + '18']
+        botSheet.batch_clear(confirmedSheetRange)
+
+        maybeSheetRange = [colLetter + '20:' + colLetter + '25']
+        botSheet.batch_clear(maybeSheetRange)
+
+        confirmedPlayers = embedded_data.fields[1].value
+        confirmedPlayers = re.findall(r'\d+', str(confirmedPlayers))
+
+        maybePlayers = embedded_data.fields[2].value
+        maybePlayers = re.findall(r'\d+', str(maybePlayers))
+
+        for i, id in enumerate(confirmedPlayers):
             index = voodooTeam["DISCORD USER ID"].index(int(id))
-            sheet.update_cell(i+2, 1, voodooTeam["PLAYER NAME"][index])
+            botSheet.update_cell(i + 3, j + 2, voodooTeam["PLAYER NAME"][index])
+
+        for i, id in enumerate(maybePlayers):
+            index = voodooTeam["DISCORD USER ID"].index(int(id))
+            botSheet.update_cell(i + 20, j + 2, voodooTeam["PLAYER NAME"][index])
 
 
 @hockeyBot.event
@@ -114,8 +179,50 @@ async def avatar(interaction: discord.Interaction, member: discord.Member):
 
 
 @tree.command(name='add-player', description='Adds a Player to the roster', guild=GUILD_ID)
-async def addPlayer(interaction: discord.Interaction, member: discord.Member, name: str = None, position: str = None, gp: int = 0, goals: int = 0, assists: int = 0, pims: int = 0):
+async def addPlayer(interaction: discord.Interaction, member: discord.Member, gp: int = 0, goals: int = 0, assists: int = 0, pims: int = 0):
     memberID = member.id
+    memberRoles = member.roles
+
+    position = 'not-specified'
+    status = 'friend-of-the-program'
+    isCaptain = False
+    handedness = 'not-specified'
+
+    number = re.search(r'\[(\d+)\]', str(member.display_name))
+    name = str(member.display_name).split()[0]
+
+    if not name:
+        name = 'nameless'
+
+    if number:
+        number = int(number.group(1))
+    else:
+        number = -1
+
+    for role in memberRoles:
+        role = str(role)
+        if role == 'center':
+            position = 'C'
+        elif role == 'forward':
+            position = 'F'
+        elif role == 'defenseman':
+            position = 'D'
+        elif role == 'goalie':
+            position = 'G'
+
+        if role == 'Voodoo Baierl E1 Roster':
+            status = 'fullTime'
+        elif role == 'substitute':
+            status = 'sub'
+
+        if role == 'captain':
+            isCaptain = True
+
+        if role == 'lefty':
+            handedness = 'left'
+        elif role == 'righty':
+            handedness = 'right'
+
     for i in voodooTeam['DISCORD USER ID']:
         if memberID == i and len(voodooTeam) > 0:
             await interaction.response.send_message('Player with that discord ID already exists.')
@@ -124,6 +231,10 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member, na
     voodooTeam['PLAYER NAME'].append(name)
     voodooTeam['POSITION'].append(position)
     voodooTeam['DISCORD USER ID'].append(memberID)
+    voodooTeam['STATUS'].append(status)
+    voodooTeam['IS_CAPTAIN'].append(isCaptain)
+    voodooTeam['HANDEDNESS'].append(handedness)
+    voodooTeam['NUMBER'].append(number)
     voodooTeam['GP'].append(gp)
     voodooTeam['GOALS'].append(goals)
     voodooTeam['ASSISTS'].append(assists)
@@ -150,10 +261,39 @@ async def viewStats(interaction: discord.Interaction, member: discord.Member, st
     await interaction.response.send_message('Player or stat does not exist')
 
 
-@tree.command(name='sheet-clear-players', description='(WIP) Clears all players from RSVP list', guild=GUILD_ID)
+@tree.command(name='sheet-clear-players', description='DO NOT USE', guild=GUILD_ID)
 async def clearRSVPs(interaction: discord.Interaction):
     sheet.batch_clear(["A2:A30"])
     await interaction.response.send_message('Cleared RSVP list, I hope you meant to do that.')
+
+
+@tree.command(name='get-lineup', description='(WIP) Gets the lineup from the google sheet', guild=GUILD_ID)
+async def getLineup(interaction: discord.Interaction):
+    def generate_lineup_card(f, d, g):
+        header = [["------", "Voodoo Lineup Card", "------"]]
+        underHeader = [["------", "-" * len(header[0][1]), "------"]]
+        forwards_header = [["", "Forwards", ""], ["LW", "C", "RW"]]
+        spacer = [
+            ["------", "-" * len(header[0][1]), "------"]
+        ]
+        defense_header = [["", "Defense", ""], ["LD", "", "RD"]]
+        goalie_header = [["", "Goalie", ""]]
+        lineup_card = \
+            header + underHeader + forwards_header + spacer + f + spacer + defense_header + spacer + d + spacer + \
+            goalie_header + g
+        return tabulate(lineup_card, stralign="center")
+
+    forwardsRange = 'A3:C6'
+    defenseRange = 'A9:C12'
+    goalieRange = 'A14:C14'
+
+    forwards = sheet.get(forwardsRange)
+    defense = sheet.get(defenseRange)
+    goalie = sheet.get(goalieRange)
+
+    lineup = generate_lineup_card(forwards, defense, goalie)
+
+    await interaction.response.send_message('```' + lineup + '```')
 
 
 @tree.command(name='edit-stats', description='Edits a players stats', guild=GUILD_ID)
