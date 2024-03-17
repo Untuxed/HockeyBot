@@ -2,15 +2,31 @@ import discord
 from discord import app_commands
 import json
 import os
+import pickle
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+global attendees
+attendees = []
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.messages = True
 intents.guild_scheduled_events = True
 intents.guilds = True
 intents.members = True
 
-client = discord.Client(intents=intents)
-tree = app_commands.CommandTree(client)
+scope = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
+creds = ServiceAccountCredentials.from_json_keyfile_name(
+    './hockeybot-417500-12b59baa2a04.json', scope
+)
+
+client = gspread.authorize(creds)
+sheet = client.open('VoodooSpring2024Lineup').sheet1
+
+hockeyBot = discord.Client(intents=intents)
+tree = app_commands.CommandTree(hockeyBot)
 GUILD_ID = discord.Object(id=107270946418622464)  # Personal server
 GUILD_ID = discord.Object(id=1218284808552317009)  # Voodoo server
 
@@ -26,20 +42,28 @@ else:
         'GOALS': [],
         'ASSISTS': [],
         'POINTS': [],
+        'PPG': [],
         'PIMS': []
     }
 
-
-@client.event
+@hockeyBot.event
 async def on_ready():
-    print(f'{client.user.name} has connected to Discord!')
+    print(f'{hockeyBot.user.name} has connected to Discord!')
     await tree.sync(guild=GUILD_ID)
 
 
-@client.event
+@hockeyBot.event
 async def on_message(message):
-    if message.author == client.user.name:
+    if message.author == hockeyBot.user.name:
         return
+
+    for embed in message.embeds:
+        with open('object.pickle', 'wb') as f:
+            pickle.dump(embed, f)
+        print(embed._footer)
+
+    if message.author == 'sesh':
+        print(message)
 
     if message.content.startswith('$hello'):
         await message.channel.send('Hello!')
@@ -48,13 +72,24 @@ async def on_message(message):
         await message.add_reaction("🤩")
 
 
-@client.event
+# TODO: get list of confirmed players from sesh message on edit
+# TODO: add player to google sheet (yes's and maybe's, separate by position pref)
+# TODO: save completed lines and then /command read from spreadsheet and create jpeg
+@hockeyBot.event
+async def on_message_edit(before, _):
+    if before.author == 'sesh#1244':
+        attendees = 1
+        sheet.append_row(values)
+    print(before.author)
+
+
+@hockeyBot.event
 async def on_scheduled_event_create(event):
     if event:
-        client.get_channel()
+        hockeyBot.get_channel()
 
 
-@client.event
+@hockeyBot.event
 async def on_scheduled_event_user_add(event, user):
     if user:
         print(user)
@@ -62,10 +97,7 @@ async def on_scheduled_event_user_add(event, user):
 
 @tree.command(name='get-events', description='Test', guild=GUILD_ID)
 async def getChannels(interaction: discord.Interaction):
-    print(client.guilds[0].scheduled_events)
-
-    subbedUsers = client.guilds[0].scheduled_events[0].users(limit=20, oldest_first=True)
-
+    subbedUsers = hockeyBot.guilds[1].scheduled_events[0].users(limit=20, oldest_first=True)
     players = []
 
     async for u in subbedUsers:
@@ -94,6 +126,7 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member, na
     voodooTeam['GOALS'].append(goals)
     voodooTeam['ASSISTS'].append(assists)
     voodooTeam['POINTS'].append(goals+assists)
+    voodooTeam['PPG'].append((goals+assists)/gp)
     voodooTeam['PIMS'].append(pims)
 
     with open('./VoodooRoster.json', 'w') as f:
@@ -107,7 +140,9 @@ async def viewStats(interaction: discord.Interaction, member: discord.Member, st
     memberID = member.id
     for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
         if memberID == ID and stat.upper() in voodooTeam:
-            await interaction.response.send_message(f'Player {voodooTeam["PLAYER NAME"][i]} has {voodooTeam[stat.upper()][i]} ' + stat.lower())
+            await interaction.response.send_message(
+                f'Player {voodooTeam["PLAYER NAME"][i]} has {voodooTeam[stat.upper()][i]} ' + stat.lower()
+            )
             return
 
     await interaction.response.send_message('Player or stat does not exist')
@@ -132,4 +167,4 @@ async def editStats(interaction: discord.Interaction, member: discord.Member, st
     await interaction.response.send_message('Player or stat does not exist')
 
 
-client.run('')
+hockeyBot.run('')
