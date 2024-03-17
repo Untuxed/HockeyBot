@@ -35,7 +35,7 @@ botSheet = googleDoc.get_worksheet(1)
 hockeyBot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(hockeyBot)
 GUILD_ID = discord.Object(id=107270946418622464)  # Personal server
-GUILD_ID = discord.Object(id=1218284808552317009)  # Voodoo server
+# GUILD_ID = discord.Object(id=1218284808552317009)  # Voodoo server
 
 if os.path.isfile('./VoodooRoster.json'):
     with open('./VoodooRoster.json') as f:
@@ -102,8 +102,8 @@ async def on_message_edit(_, after):
 
     if str(after.author) == 'sesh#1244':
         embedded_data = after.embeds[0]
-        time = re.search(r'\d+', str(embedded_data.fields[0].value)).group()
-        legibleDateTime = datetime.utcfromtimestamp(time) - timedelta(hours=4)
+        time = int(re.search(r'\d+', str(embedded_data.fields[0].value)).group())
+        legibleDateTime = str(datetime.utcfromtimestamp(time) - timedelta(hours=4))
         currentScheduledGames = botSheet.row_values(2)
 
         if not currentScheduledGames:
