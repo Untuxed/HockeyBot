@@ -12,6 +12,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import re
 from tabulate import tabulate
+from datetime import datetime, timedelta
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -93,61 +94,59 @@ async def on_message_edit(_, after):
             dividend = (dividend - modulo) // 26
         return column_letter
 
+    def getPlayers(data):
+        confirmed = data.fields[1].value
+        maybes = data.fields[2].value
+
+        return [re.findall(r'\d+', str(confirmed)), re.findall(r'\d+', str(maybes))]
+
     if str(after.author) == 'sesh#1244':
         embedded_data = after.embeds[0]
         time = re.search(r'\d+', str(embedded_data.fields[0].value)).group()
-
+        legibleDateTime = datetime.utcfromtimestamp(time) - timedelta(hours=4)
         currentScheduledGames = botSheet.row_values(2)
 
         if not currentScheduledGames:
             j = -1
 
         for j, gameTime in enumerate(currentScheduledGames):
-            if time == gameTime:
+            if legibleDateTime == gameTime:
                 colLetter = column_index_to_letter(j+1)
 
-                confirmedSheetRange = [colLetter+'3:'+colLetter+'18']
+                confirmedSheetRange = [colLetter+'4:'+colLetter+'19']
                 botSheet.batch_clear(confirmedSheetRange)
 
-                maybeSheetRange = [colLetter+'20:'+colLetter+'25']
+                maybeSheetRange = [colLetter+'21:'+colLetter+'26']
                 botSheet.batch_clear(maybeSheetRange)
 
-                confirmedPlayers = embedded_data.fields[1].value
-                confirmedPlayers = re.findall(r'\d+', str(confirmedPlayers))
-
-                maybePlayers = embedded_data.fields[2].value
-                maybePlayers = re.findall(r'\d+', str(maybePlayers))
+                [confirmedPlayers, maybePlayers] = getPlayers(embedded_data)
 
                 for i, id in enumerate(confirmedPlayers):
                     index = voodooTeam["DISCORD USER ID"].index(int(id))
-                    botSheet.update_cell(i+3, j+1, voodooTeam["PLAYER NAME"][index])
+                    botSheet.update_cell(i+4, j+1, voodooTeam["PLAYER NAME"][index])
                 for i, id in enumerate(maybePlayers):
                     index = voodooTeam["DISCORD USER ID"].index(int(id))
-                    botSheet.update_cell(i+20, j+1, voodooTeam["PLAYER NAME"][index])
+                    botSheet.update_cell(i+21, j+1, voodooTeam["PLAYER NAME"][index])
                 return
 
         colLetter = column_index_to_letter(j+2)
-        botSheet.update_cell(2, j+2, time)
+        botSheet.update_cell(2, j+2, legibleDateTime)
 
-        confirmedSheetRange = [colLetter + '3:' + colLetter + '18']
+        confirmedSheetRange = [colLetter + '4:' + colLetter + '19']
         botSheet.batch_clear(confirmedSheetRange)
 
-        maybeSheetRange = [colLetter + '20:' + colLetter + '25']
+        maybeSheetRange = [colLetter + '21:' + colLetter + '26']
         botSheet.batch_clear(maybeSheetRange)
 
-        confirmedPlayers = embedded_data.fields[1].value
-        confirmedPlayers = re.findall(r'\d+', str(confirmedPlayers))
-
-        maybePlayers = embedded_data.fields[2].value
-        maybePlayers = re.findall(r'\d+', str(maybePlayers))
+        [confirmedPlayers, maybePlayers] = getPlayers(embedded_data)
 
         for i, id in enumerate(confirmedPlayers):
             index = voodooTeam["DISCORD USER ID"].index(int(id))
-            botSheet.update_cell(i + 3, j + 2, voodooTeam["PLAYER NAME"][index])
+            botSheet.update_cell(i + 4, j + 2, voodooTeam["PLAYER NAME"][index])
 
         for i, id in enumerate(maybePlayers):
             index = voodooTeam["DISCORD USER ID"].index(int(id))
-            botSheet.update_cell(i + 20, j + 2, voodooTeam["PLAYER NAME"][index])
+            botSheet.update_cell(i + 21, j + 2, voodooTeam["PLAYER NAME"][index])
 
 
 @hockeyBot.event
