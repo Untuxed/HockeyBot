@@ -1,38 +1,14 @@
 # TODO: Fix usage with polls
 # TODO: change getworksheet to be by name
-import discord
-from discord import app_commands
 import json
 import os
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 import re
 from tabulate import tabulate
 from datetime import datetime, timedelta
 import time
-
-intents = discord.Intents.default()
-intents.message_content = True
-intents.messages = True
-intents.guild_scheduled_events = True
-intents.guilds = True
-intents.members = True
-
-scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    './hockeybot-417500-12b59baa2a04.json', scope
-)
-
-client = gspread.authorize(creds)
-googleDoc = client.open('VoodooSpring2024Lineup')
-sheet = googleDoc.get_worksheet(0)
-botSheet = googleDoc.get_worksheet(1)
-
-hockeyBot = discord.Client(intents=intents)
-tree = app_commands.CommandTree(hockeyBot)
-GUILD_ID = discord.Object(id=107270946418622464)  # Personal server
-GUILD_ID = discord.Object(id=1218284808552317009)  # Voodoo server
+from googleStuff import *
+from discordStuff import *
+from sheets import *
 
 if os.path.isfile('./VoodooRoster.json'):
     with open('./VoodooRoster.json') as f:
@@ -126,10 +102,12 @@ async def on_message_edit(_, after):
 
     if str(after.author) == 'sesh#1244':
         embedded_data = after.embeds[0]
-        gameTime = int(re.search(r'\d+', str(embedded_data.fields[0].value)).group())
+        gameTime = int(
+            re.search(r'\d+', str(embedded_data.fields[0].value)).group())
         if gameTime - 10 < int(time.time()):
             return
-        legibleDateTime = str(datetime.utcfromtimestamp(gameTime) - timedelta(hours=4))
+        legibleDateTime = str(datetime.utcfromtimestamp(
+            gameTime) - timedelta(hours=4))
         currentScheduledGames = botSheet.row_values(2)
 
         if not currentScheduledGames:
@@ -150,11 +128,13 @@ async def on_message_edit(_, after):
                 for i, id in enumerate(confirmedPlayers):
                     index = voodooTeam["DISCORD USER ID"].index(int(id))
                     position = voodooTeam["POSITION"][index]
-                    botSheet.update_cell(i+4, j+1, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
+                    botSheet.update_cell(
+                        i+4, j+1, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
                 for i, id in enumerate(maybePlayers):
                     index = voodooTeam["DISCORD USER ID"].index(int(id))
                     position = voodooTeam["POSITION"][index]
-                    botSheet.update_cell(i+21, j+1, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
+                    botSheet.update_cell(
+                        i+21, j+1, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
                 return
 
         colLetter = column_index_to_letter(j+2)
@@ -171,12 +151,14 @@ async def on_message_edit(_, after):
         for i, id in enumerate(confirmedPlayers):
             index = voodooTeam["DISCORD USER ID"].index(int(id))
             position = voodooTeam["POSITION"][index]
-            botSheet.update_cell(i + 4, j + 2, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
+            botSheet.update_cell(
+                i + 4, j + 2, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
 
         for i, id in enumerate(maybePlayers):
             index = voodooTeam["DISCORD USER ID"].index(int(id))
             position = voodooTeam["POSITION"][index]
-            botSheet.update_cell(i + 21, j + 2, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
+            botSheet.update_cell(
+                i + 21, j + 2, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
 
 
 @hockeyBot.event
@@ -193,7 +175,8 @@ async def on_scheduled_event_user_add(event, user):
 
 @tree.command(name='get-events', description='Test', guild=GUILD_ID)
 async def getChannels(interaction: discord.Interaction):
-    subbedUsers = hockeyBot.guilds[1].scheduled_events[0].users(limit=20, oldest_first=True)
+    subbedUsers = hockeyBot.guilds[1].scheduled_events[0].users(
+        limit=20, oldest_first=True)
     players = []
 
     async for u in subbedUsers:
@@ -283,11 +266,32 @@ async def viewStats(interaction: discord.Interaction, member: discord.Member, st
     for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
         if memberID == ID and stat.upper() in voodooTeam:
             await interaction.response.send_message(
-                f'Player {voodooTeam["PLAYER NAME"][i]} has {voodooTeam[stat.upper()][i]} ' + stat.lower()
+                f'Player {voodooTeam["PLAYER NAME"][i]} has {voodooTeam[stat.upper()][i]} ' +
+                stat.lower()
             )
             return
 
     await interaction.response.send_message('Player or stat does not exist')
+
+
+@tree.command(name='view-all-stats', description='Views all stats for a player', guild=GUILD_ID)
+async def viewAllStats(interaction: discord.Interaction, member: discord.Member):
+    memberID = member.id
+    for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
+        if memberID == ID:
+            player_name = voodooTeam['PLAYER NAME'][i]
+            stats_message = f'**Stats for {player_name}:**\n'
+            for stat_key, stat_values in voodooTeam.items():
+                if stat_key.upper() not in ('DISCORD USER ID', 'PLAYER NAME'):
+                    if stat_key.upper() in ('GP', 'GOALS', 'ASSISTS', 'POINTS', 'PIMS'):
+                        if i < len(stat_values):
+                            stats_message += f'{stat_key}: {stat_values[i]}\n'
+                        else:
+                            stats_message += f'{stat_key}: [No data]\n'
+            await interaction.response.send_message(stats_message)
+            return
+
+    await interaction.response.send_message('Player not found')
 
 
 @tree.command(name='sheet-clear-players', description='DO NOT USE', guild=GUILD_ID)
@@ -335,8 +339,9 @@ async def editStats(interaction: discord.Interaction, member: discord.Member, st
             oldStatValue = voodooTeam[stat.upper()][i]
             voodooTeam[stat.upper()][i] = new_value
             await interaction.response.send_message(
-                'Changed ' + stat.lower() + f' from {oldStatValue} to {voodooTeam[stat.upper()][i]} for player '
-                                            f'{voodooTeam["PLAYER NAME"][i]}')
+                'Changed ' + stat.lower() +
+                f' from {oldStatValue} to {voodooTeam[stat.upper()][i]} for player '
+                f'{voodooTeam["PLAYER NAME"][i]}')
             with open('./VoodooRoster.json', 'w') as f:
                 f.write(json.dumps(voodooTeam))
             return
@@ -349,11 +354,16 @@ async def incrementStats(interaction: discord.Interaction, member: discord.Membe
     memberID = member.id
     for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
         if memberID == ID:
-            voodooTeam['goals'.upper()][i] = voodooTeam['goals'.upper()][i] + goals
-            voodooTeam['assists'.upper()][i] = voodooTeam['assists'.upper()][i] + assists
-            voodooTeam['pims'.upper()][i] = voodooTeam['pims'.upper()][i] + pims
-            voodooTeam['points'.upper()][i] = voodooTeam['points'.upper()][i] + voodooTeam['goals'.upper()][i] + voodooTeam['assists'.upper()][i]
-            voodooTeam['ppg'.upper()][i] = voodooTeam['points'.upper()][i]/voodooTeam['gp'.upper()][i]
+            voodooTeam['goals'.upper()][i] = voodooTeam['goals'.upper()
+                                                        ][i] + goals
+            voodooTeam['assists'.upper(
+            )][i] = voodooTeam['assists'.upper()][i] + assists
+            voodooTeam['pims'.upper()][i] = voodooTeam['pims'.upper()
+                                                       ][i] + pims
+            voodooTeam['points'.upper()][i] = voodooTeam['points'.upper(
+            )][i] + voodooTeam['goals'.upper()][i] + voodooTeam['assists'.upper()][i]
+            voodooTeam['ppg'.upper()][i] = voodooTeam['points'.upper()
+                                                      ][i]/voodooTeam['gp'.upper()][i]
             await interaction.response.send_message(f'Incremented {voodooTeam["PLAYER NAME"][i]}\'s stats.')
             with open('./VoodooRoster.json', 'w') as f:
                 f.write(json.dumps(voodooTeam))
@@ -362,4 +372,5 @@ async def incrementStats(interaction: discord.Interaction, member: discord.Membe
     await interaction.response.send_message('Player ID does not exist.')
 
 # token
-hockeyBot.run('')
+hockeyBot.run(
+    '')
