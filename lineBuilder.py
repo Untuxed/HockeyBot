@@ -1,12 +1,17 @@
 from discordStuff import *
+import re
+from sheets import *
+import datetime
+from datetime import time, timedelta
+
 
 @hockeyBot.event
 async def on_message(message):
-
-# if message is from sesh (aka event created)...
     if message.content and str(message.author) == 'sesh#1244':
-        if int(re.search(r'\d+', str(message.content)).group(0)) == 1218300771318370395: # what's this id?
-            botSheetValues = botSheet.get_all_values()
+        if int(re.search(r'\d+', str(message.content)).group(0)) == 1218300771318370395:
+            botSheetValues = SHEET.values().get(
+                spreadsheetId=VOODOO_SHEET_ID, range=RSVP_SHEET_RANGE).execute().get('values', [])
+
             excludedKeywords = ['Robot Database', 'Confirmed', 'Maybes']
 
             forwardsRange = 'A3:C6'
@@ -23,16 +28,31 @@ async def on_message(message):
             ]
             flattenedPlayers = [name for name in players if name != '']
 
-            # for player in flattenedPlayers:
-            #     for i, databasePlayer in enumerate(voodooTeam['PLAYER NAME']):
-            #         if player == databasePlayer:
-            #             voodooTeam['GP'][i] += 1
+            Database_Players = sheet.values().get(spreadsheetId=VOODOO_SHEET_ID,
+                                         range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
+
+            for player in flattenedPlayers:
+                for i, Database_Player in Database_Players:
+                    if player == Database_Player[1] or player == Database_Player[2]:
+                        # Update the player's stats
+                        Database_Player[8] = int(Database_Player[8] + 1)  # Update GP
+
+                        # Update the player's stats in the Google Sheet
+                        sheet.values().update(
+                            spreadsheetId=VOODOO_SHEET_ID,
+                            range=f'ROSTER DB!A{i + 2}:N{i + 2}',
+                            valueInputOption='USER_ENTERED',
+                            body={'values': [player]}
+                        ).execute()
+                        print('increment GP')
+                        return
 
             for row in botSheetValues:
                 if row[0] not in excludedKeywords:
                     row.pop(0)
 
             botSheet.update(botSheetValues)
+
 
 @hockeyBot.event
 async def on_message_edit(_, after):
@@ -79,6 +99,10 @@ async def on_message_edit(_, after):
                 botSheet.batch_clear(maybeSheetRange)
 
                 [confirmedPlayers, maybePlayers] = getPlayers(embedded_data)
+
+                existing_players = SHEET.values().get(
+                    spreadsheetId=VOODOO_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
+                existing_ids = [row[4] for row in existing_players if len(row) > 2]
 
                 for i, id in enumerate(confirmedPlayers):
                     index = voodooTeam["DISCORD USER ID"].index(int(id))
