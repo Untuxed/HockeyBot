@@ -32,7 +32,7 @@ botSheet = googleDoc.get_worksheet(1)
 hockeyBot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(hockeyBot)
 GUILD_ID = discord.Object(id=107270946418622464)  # Personal server
-# GUILD_ID = discord.Object(id=1218284808552317009)  # Voodoo server
+GUILD_ID = discord.Object(id=1218284808552317009)  # Voodoo server
 
 if os.path.isfile('./VoodooRoster.json'):
     with open('./VoodooRoster.json') as f:
@@ -77,12 +77,30 @@ async def on_message(message):
             botSheetValues = botSheet.get_all_values()
             excludedKeywords = ['Robot Database', 'Confirmed', 'Maybes']
 
+            forwardsRange = 'A3:C6'
+            defenseRange = 'A9:C12'
+            goalieRange = 'A14:C14'
+
+            players = [
+                name for sublist in
+                [
+                    sheet.get(forwardsRange),
+                    sheet.get(defenseRange),
+                    sheet.get(goalieRange)
+                ] for inner_list in sublist for name in inner_list
+            ]
+            flattenedPlayers = [name for name in players if name != '']
+
+            for player in flattenedPlayers:
+                for i, databasePlayer in enumerate(voodooTeam['PLAYER NAME']):
+                    if player == databasePlayer:
+                        voodooTeam['GP'][i] += 1
+
             for row in botSheetValues:
                 if row[0] not in excludedKeywords:
                     row.pop(0)
 
             botSheet.update(botSheetValues)
-            print('Game Started')
 
 
 @hockeyBot.event
