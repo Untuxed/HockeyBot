@@ -1,18 +1,15 @@
 # TODO: Fix usage with polls
 # TODO: change getworksheet to be by name
-# TODO: add player to google sheet (yes's and maybe's, separate by position pref)
-# TODO: save completed lines and then /command read from spreadsheet and create jpeg
-# TODO: Bulk edit stats
 import discord
 from discord import app_commands
 import json
 import os
-import pickle
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import re
 from tabulate import tabulate
 from datetime import datetime, timedelta
+import time
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -66,21 +63,26 @@ async def on_ready():
 
 @hockeyBot.event
 async def on_message(message):
-    if message.author == hockeyBot.user.name:
+    if str(message.author) == 'HockeyBot#3547':
         return
-
-    for embed in message.embeds:
-        with open('object.pickle', 'wb') as f:
-            pickle.dump(embed, f)
-
-    if message.author == 'sesh':
-        print(message)
 
     if message.content.startswith('$hello'):
         await message.channel.send('Hello!')
 
     if message.content.startswith('$lines'):
         await message.add_reaction("🤩")
+
+    if message.content and str(message.author) == 'sesh#1244':
+        if int(re.search(r'\d+', str(message.content)).group(0)) == 1218300771318370395:
+            botSheetValues = botSheet.get_all_values()
+            excludedKeywords = ['Robot Database', 'Confirmed', 'Maybes']
+
+            for row in botSheetValues:
+                if row[0] not in excludedKeywords:
+                    row.pop(0)
+
+            botSheet.update(botSheetValues)
+            print('Game Started')
 
 
 @hockeyBot.event
@@ -100,10 +102,16 @@ async def on_message_edit(_, after):
 
         return [re.findall(r'\d+', str(confirmed)), re.findall(r'\d+', str(maybes))]
 
+    if after.content:
+        if int(re.search(r'\d+', str(after.content)).group(0)) == 1218300771318370395:
+            return
+
     if str(after.author) == 'sesh#1244':
         embedded_data = after.embeds[0]
-        time = int(re.search(r'\d+', str(embedded_data.fields[0].value)).group())
-        legibleDateTime = str(datetime.utcfromtimestamp(time) - timedelta(hours=4))
+        gameTime = int(re.search(r'\d+', str(embedded_data.fields[0].value)).group())
+        if gameTime - 10 < int(time.time()):
+            return
+        legibleDateTime = str(datetime.utcfromtimestamp(gameTime) - timedelta(hours=4))
         currentScheduledGames = botSheet.row_values(2)
 
         if not currentScheduledGames:
@@ -123,10 +131,12 @@ async def on_message_edit(_, after):
 
                 for i, id in enumerate(confirmedPlayers):
                     index = voodooTeam["DISCORD USER ID"].index(int(id))
-                    botSheet.update_cell(i+4, j+1, voodooTeam["PLAYER NAME"][index])
+                    position = voodooTeam["POSITION"][index]
+                    botSheet.update_cell(i+4, j+1, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
                 for i, id in enumerate(maybePlayers):
                     index = voodooTeam["DISCORD USER ID"].index(int(id))
-                    botSheet.update_cell(i+21, j+1, voodooTeam["PLAYER NAME"][index])
+                    position = voodooTeam["POSITION"][index]
+                    botSheet.update_cell(i+21, j+1, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
                 return
 
         colLetter = column_index_to_letter(j+2)
@@ -142,11 +152,13 @@ async def on_message_edit(_, after):
 
         for i, id in enumerate(confirmedPlayers):
             index = voodooTeam["DISCORD USER ID"].index(int(id))
-            botSheet.update_cell(i + 4, j + 2, voodooTeam["PLAYER NAME"][index])
+            position = voodooTeam["POSITION"][index]
+            botSheet.update_cell(i + 4, j + 2, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
 
         for i, id in enumerate(maybePlayers):
             index = voodooTeam["DISCORD USER ID"].index(int(id))
-            botSheet.update_cell(i + 21, j + 2, voodooTeam["PLAYER NAME"][index])
+            position = voodooTeam["POSITION"][index]
+            botSheet.update_cell(i + 21, j + 2, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
 
 
 @hockeyBot.event
@@ -262,14 +274,14 @@ async def viewStats(interaction: discord.Interaction, member: discord.Member, st
 
 @tree.command(name='sheet-clear-players', description='DO NOT USE', guild=GUILD_ID)
 async def clearRSVPs(interaction: discord.Interaction):
-    sheet.batch_clear(["A2:A30"])
+    botSheet.batch_clear(["A4:A19", "A21:A30"])
     await interaction.response.send_message('Cleared RSVP list, I hope you meant to do that.')
 
 
 @tree.command(name='get-lineup', description='(WIP) Gets the lineup from the google sheet', guild=GUILD_ID)
 async def getLineup(interaction: discord.Interaction):
     def generate_lineup_card(f, d, g):
-        header = [["------", "Voodoo Lineup Card", "------"]]
+        header = [["------", "Lineup Card", "------"]]
         underHeader = [["------", "-" * len(header[0][1]), "------"]]
         forwards_header = [["", "Forwards", ""], ["LW", "C", "RW"]]
         spacer = [
@@ -312,6 +324,24 @@ async def editStats(interaction: discord.Interaction, member: discord.Member, st
             return
 
     await interaction.response.send_message('Player or stat does not exist')
+
+
+@tree.command(name='increment-stats', description='Increment a players stats', guild=GUILD_ID)
+async def incrementStats(interaction: discord.Interaction, member: discord.Member, goals: int = 0, assists: int = 0, pims: int = 0):
+    memberID = member.id
+    for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
+        if memberID == ID:
+            voodooTeam['goals'.upper()][i] = voodooTeam['goals'.upper()][i] + goals
+            voodooTeam['assists'.upper()][i] = voodooTeam['assists'.upper()][i] + assists
+            voodooTeam['pims'.upper()][i] = voodooTeam['pims'.upper()][i] + pims
+            voodooTeam['points'.upper()][i] = voodooTeam['points'.upper()][i] + voodooTeam['goals'.upper()][i] + voodooTeam['assists'.upper()][i]
+            voodooTeam['ppg'.upper()][i] = voodooTeam['points'.upper()][i]/voodooTeam['gp'.upper()][i]
+            await interaction.response.send_message(f'Incremented {voodooTeam["PLAYER NAME"][i]}\'s stats.')
+            with open('./VoodooRoster.json', 'w') as f:
+                f.write(json.dumps(voodooTeam))
+            return
+
+    await interaction.response.send_message('Player ID does not exist.')
 
 # token
 hockeyBot.run('')
