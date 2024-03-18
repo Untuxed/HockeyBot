@@ -6,6 +6,7 @@ from googleStuff import *
 from sheets import *
 
 
+# region get-events what does this do?????
 @tree.command(name='get-events', description='Test', guild=GUILD_ID)
 async def getChannels(interaction: discord.Interaction):
     subbedUsers = hockeyBot.guilds[1].scheduled_events[0].users(
@@ -17,78 +18,87 @@ async def getChannels(interaction: discord.Interaction):
 
     await interaction.response.send_message(players)
 
+#endregion get-events
 
-# what's this do?
+
+# region avatar what's this do????
 @tree.command(name="avatar", description="Get user avatar", guild=GUILD_ID)
 async def avatar(interaction: discord.Interaction, member: discord.Member):
     await interaction.response.send_message(member.display_avatar)
+#endregion avatar
+
+
+# region view-stats
+# @tree.command(name='view-stats', description='Views a players stats', guild=GUILD_ID)
+# async def viewStats(interaction: discord.Interaction, member: discord.Member, stat: str = None):
+#     memberID = member.id
+#     for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
+#         if memberID == ID and stat.upper() in voodooTeam:
+#             await interaction.response.send_message(
+#                 f'Player {voodooTeam["PLAYER NAME"][i]} has {voodooTeam[stat.upper()][i]} ' +
+#                 stat.lower()
+#             )
+#             return
+
+#     await interaction.response.send_message('Player or stat does not exist')
+#endregion view-stats
+
+
+# region get-my-stats: pulls your stats from the google sheet
+@tree.command(name='get-my-stats', description='Views a players stats', guild=GUILD_ID)
+async def getMyStats(interaction: discord.Interaction):
+    # Get the member's ID
+    memberID = str(interaction.user.id)
+
+    # Fetch all players from the Google Sheet
+    players = sheet.values().get(spreadsheetId=ROSTER_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
+
+    # Find the player with the matching ID
+    player = next((player for player in players if player[4] == memberID), None)
+
+    if player is None:
+        # If the player wasn't found, send an error message
+        await interaction.response.send_message('Player does not exist.')
+    else:
+        # If the player was found, send their stats
+        number, firstName, lastName, position, memberID, status, isCaptain, handedness, gp, goals, assists, total, avg, pims = player
+        stats_dict = {'GP': gp, 'GOALS': goals, 'ASSISTS': assists, 'TOTAL': total, 'PIMS': pims}
+        stats_message = f'**Stats for {firstName} {lastName}:**\n'
+        for stat_key, stat_value in stats_dict.items():
+            stats_message += f'{stat_key}: {stat_value}\n'
+        await interaction.response.send_message(stats_message)
 
 
 
-@tree.command(name='view-stats', description='Views a players stats', guild=GUILD_ID)
-async def viewStats(interaction: discord.Interaction, member: discord.Member, stat: str = None):
-    memberID = member.id
-    for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
-        if memberID == ID and stat.upper() in voodooTeam:
-            await interaction.response.send_message(
-                f'Player {voodooTeam["PLAYER NAME"][i]} has {voodooTeam[stat.upper()][i]} ' +
-                stat.lower()
-            )
-            return
 
-    await interaction.response.send_message('Player or stat does not exist')
-
-
-# returns stats for whoever uses the command
-@tree.command(name='view-my-stats', description='Views all your own stats', guild=GUILD_ID)
-async def viewMyStats(interaction: discord.Interaction):
-    memberID = interaction.user.id  # Get the ID of the interaction's user
-    for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
-        if memberID == ID:
-            player_name = voodooTeam['PLAYER NAME'][i]
-            stats_message = f'**Stats for {player_name}:**\n'
-            for stat_key, stat_values in voodooTeam.items():
-                if stat_key.upper() not in ('DISCORD USER ID', 'PLAYER NAME'):
-                    if stat_key.upper() in ('GP', 'GOALS', 'ASSISTS', 'POINTS', 'PIMS'):
-                        if i < len(stat_values):
-                            stats_message += f'{stat_key}: {stat_values[i]}\n'
-                        else:
-                            stats_message += f'{stat_key}: [No data]\n'
-            await interaction.response.send_message(stats_message)
-            return
-
-    await interaction.response.send_message('Player not found')
-
-
-# returns stats for the specified player
-@tree.command(name='view-player-stats', description='Views all stats for a player', guild=GUILD_ID)
+@tree.command(name='get-player-stats', description='Views all stats for a player', guild=GUILD_ID)
 async def viewAllStats(interaction: discord.Interaction, member: discord.Member):
-    memberID = member.id
-    for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
-        if memberID == ID:
-            player_name = voodooTeam['PLAYER NAME'][i]
-            stats_message = f'**Stats for {player_name}:**\n'
-            for stat_key, stat_values in voodooTeam.items():
-                if stat_key.upper() not in ('DISCORD USER ID', 'PLAYER NAME'):
-                    if stat_key.upper() in ('GP', 'GOALS', 'ASSISTS', 'POINTS', 'PIMS'):
-                        if i < len(stat_values):
-                            stats_message += f'{stat_key}: {stat_values[i]}\n'
-                        else:
-                            stats_message += f'{stat_key}: [No data]\n'
-            await interaction.response.send_message(stats_message)
-            return
+    # Get the member's ID
+    memberID = str(member.id)
 
-    await interaction.response.send_message('Player not found')
+    # Fetch all players from the Google Sheet
+    players = sheet.values().get(spreadsheetId=ROSTER_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
+
+    # Find the player with the matching ID
+    player = next((player for player in players if player[4] == memberID), None)
+
+    if player is None:
+        # If the player wasn't found, send an error message
+        await interaction.response.send_message('Player does not exist.')
+    else:
+        # If the player was found, send their stats
+        number, firstName, lastName, position, memberID, status, isCaptain, handedness, gp, goals, assists, total, avg, pims = player
+        stats_dict = {'GP': gp, 'GOALS': goals, 'ASSISTS': assists, 'TOTAL': total, 'PIMS': pims}
+        stats_message = f'**Stats for {firstName} {lastName}:**\n'
+        for stat_key, stat_value in stats_dict.items():
+            stats_message += f'{stat_key}: {stat_value}\n'
+        await interaction.response.send_message(stats_message)
+#endregion get-my-stats
 
 
-@tree.command(name='sheet-clear-players', description='DO NOT USE', guild=GUILD_ID)
-async def clearRSVPs(interaction: discord.Interaction):
-    botSheet.batch_clear(["A4:A19", "A21:A30"])
-    await interaction.response.send_message('Cleared RSVP list, I hope you meant to do that.')
-
-
-@tree.command(name='get-lineup', description='(WIP) Gets the lineup from the google sheet', guild=GUILD_ID)
-async def getLineup(interaction: discord.Interaction):
+# region get-lineup: pulls the current lines from the google sheet
+@tree.command(name='get-lines', description='(WIP) Gets the lineup from the google sheet', guild=GUILD_ID)
+async def getLines(interaction: discord.Interaction):
     def generate_lineup_card(f, d, g):
         header = [["------", "Lineup Card", "------"]]
         underHeader = [["------", "-" * len(header[0][1]), "------"]]
@@ -114,64 +124,46 @@ async def getLineup(interaction: discord.Interaction):
     lineup = generate_lineup_card(forwards, defense, goalie)
 
     await interaction.response.send_message('```' + lineup + '```')
+# endregion get-lineup
 
 
-@tree.command(name='edit-stats', description='Edits a players stats', guild=GUILD_ID)
-async def editStats(interaction: discord.Interaction, member: discord.Member, stat: str = None, new_value: str = None):
-    memberID = member.id
-    if not stat.upper() == 'PLAYER NAME' or not stat.upper() == 'POSITION':
-        new_value = int(new_value)
-    for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
-        if memberID == ID and stat.upper() in voodooTeam:
-            oldStatValue = voodooTeam[stat.upper()][i]
-            voodooTeam[stat.upper()][i] = new_value
-            await interaction.response.send_message(
-                'Changed ' + stat.lower() +
-                f' from {oldStatValue} to {voodooTeam[stat.upper()][i]} for player '
-                f'{voodooTeam["PLAYER NAME"][i]}')
-            with open('./VoodooRoster.json', 'w') as f:
-                f.write(json.dumps(voodooTeam))
-            return
+# region update-stats - adds stats from a single game to the stats sheet
+@tree.command(name='update-stats', description='Increment a players stats', guild=GUILD_ID)
+async def updateStats(interaction: discord.Interaction, member: discord.Member, goals: int = 0, assists: int = 0, pims: int = 0):
+    # Get the member's ID
+    memberID = str(member.id)
 
-    await interaction.response.send_message('Player or stat does not exist')
+    # Fetch all players from the Google Sheet
+    players = sheet.values().get(spreadsheetId=ROSTER_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
 
+    # Find the player with the matching ID
+    for i, player in enumerate(players):
+        if player[4] == memberID:
+            # Update the player's stats
+            player[8] = int(player[8]) + 1  # Update GP
+            player[9] = int(player[9]) + goals  # Update goals
+            player[10] = int(player[10]) + assists  # Update assists
+            player[13] = int(player[13]) + pims  # Update PIMS
+            player[11] = player[9] + player[10]  # Update total points
+            player[12] = player[11] / player[8]  # Update average points per game
 
-@tree.command(name='increment-stats', description='Increment a players stats', guild=GUILD_ID)
-async def incrementStats(interaction: discord.Interaction, member: discord.Member, goals: int = 0, assists: int = 0, pims: int = 0):
-    memberID = member.id
-    for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
-        if memberID == ID:
-            voodooTeam['goals'.upper()][i] = voodooTeam['goals'.upper()
-                                                        ][i] + goals
-            voodooTeam['assists'.upper(
-            )][i] = voodooTeam['assists'.upper()][i] + assists
-            voodooTeam['pims'.upper()][i] = voodooTeam['pims'.upper()
-                                                       ][i] + pims
-            voodooTeam['points'.upper()][i] = voodooTeam['points'.upper(
-            )][i] + voodooTeam['goals'.upper()][i] + voodooTeam['assists'.upper()][i]
-            voodooTeam['ppg'.upper()][i] = voodooTeam['points'.upper()
-                                                      ][i]/voodooTeam['gp'.upper()][i]
-            await interaction.response.send_message(f'Incremented {voodooTeam["PLAYER NAME"][i]}\'s stats.')
-            with open('./VoodooRoster.json', 'w') as f:
-                f.write(json.dumps(voodooTeam))
+            # Update the player's stats in the Google Sheet
+            sheet.values().update(
+                spreadsheetId=ROSTER_SHEET_ID,
+                range=f'ROSTER DB!A{i+2}:N{i+2}',
+                valueInputOption='USER_ENTERED',
+                body={'values': [player]}
+            ).execute()
+
+            await interaction.response.send_message(f'Updated {player[1]} {player[2]}\'s stats.')
             return
 
     await interaction.response.send_message('Player ID does not exist.')
+# endregion update-stats
 
 
-# sheets test
-
-# # Specify Google Sheet ID and range
-# SHEET_ID = rosterSheet_id
-# RANGE_NAME = 'Roster DB!A2:Z100'
-
-
-# # Connect to Google Sheets API
-# service = build('sheets', 'v4', credentials=creds)
-# sheet = service.spreadsheets()
-
-
-@tree.command(name='add-player-sheets', description='Adds a Player to the sheets db', guild=GUILD_ID)
+# region update-roster
+@tree.command(name='update-roster', description='Adds a Player to the sheets db', guild=GUILD_ID)
 async def addPlayer(interaction: discord.Interaction, member: discord.Member, gp: int = 0, goals: int = 0, assists: int = 0, pims: int = 0):
     memberID = str(member.id)
     memberRoles = member.roles
@@ -233,3 +225,32 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member, gp
         'values': [new_player]}, valueInputOption='RAW').execute()
 
     await interaction.response.send_message('Player added successfully.')
+# endregion update-roster
+
+# region edit-stats (can probably just get rid of this now since we can edit in the sheet)
+@tree.command(name='edit-stats', description='Edits a players stats', guild=GUILD_ID)
+async def editStats(interaction: discord.Interaction, member: discord.Member, stat: str = None, new_value: str = None):
+    memberID = member.id
+    if not stat.upper() == 'PLAYER NAME' or not stat.upper() == 'POSITION':
+        new_value = int(new_value)
+    for i, ID in enumerate(voodooTeam['DISCORD USER ID']):
+        if memberID == ID and stat.upper() in voodooTeam:
+            oldStatValue = voodooTeam[stat.upper()][i]
+            voodooTeam[stat.upper()][i] = new_value
+            await interaction.response.send_message(
+                'Changed ' + stat.lower() +
+                f' from {oldStatValue} to {voodooTeam[stat.upper()][i]} for player '
+                f'{voodooTeam["PLAYER NAME"][i]}')
+            with open('./VoodooRoster.json', 'w') as f:
+                f.write(json.dumps(voodooTeam))
+            return
+
+    await interaction.response.send_message('Player or stat does not exist')
+# endregion edit-stats
+
+# region clear sheet
+@tree.command(name='sheet-clear-players', description='DO NOT USE', guild=GUILD_ID)
+async def clearRSVPs(interaction: discord.Interaction):
+    botSheet.batch_clear(["A4:A19", "A21:A30"])
+    await interaction.response.send_message('Cleared RSVP list, I hope you meant to do that.')
+# endregion clear sheet
