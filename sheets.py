@@ -7,6 +7,7 @@ sheet = googleDoc.get_worksheet(0)
 
 # Specify Google Sheet ID and range
 VOODOO_SHEET_ID = sheet.spreadsheet.id
+LINEUP_RANGE_NAME = 'Lineup!A1:C14'
 ROSTER_DB_RANGE_NAME = 'Roster DB!A2:Z100'
 RSVP_SHEET_RANGE = 'RSVP Sheet!A2:H35'
 
