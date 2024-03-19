@@ -32,4 +32,4 @@ async def on_scheduled_event_user_add(event, user):
 
 
 # token
-hockeyBot.run('')
+hockeyBot.run()
