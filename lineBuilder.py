@@ -3,6 +3,7 @@ import re
 from sheets import *
 import time
 from datetime import datetime, timedelta
+import cellOperations
 
 
 @hockeyBot.event
@@ -12,7 +13,8 @@ async def on_message(message):
             RSVP_sheet_values = SHEET.values().get(
                 spreadsheetId=VOODOO_SHEET_ID,
                 range=RSVP_SHEET_RANGE,
-                valueRenderOption='FORMATTED_VALUE').execute().get('values', [])
+                valueRenderOption='FORMATTED_VALUE'
+            ).execute().get('values', [])
 
             excludedKeywords = ['Robot Database', 'Confirmed', 'Maybes']
 
@@ -54,8 +56,8 @@ async def on_message(message):
                     row.pop(0)
 
             ranges_to_clear = ['RSVP Sheet!A2:H2', 'RSVP Sheet!A4:H19', 'RSVP Sheet!A21:H35']
-            for range in ranges_to_clear:
-                SHEET.values().clear(spreadsheetId=VOODOO_SHEET_ID, range=range).execute()
+
+            await cellOperations.rangeClear(ranges_to_clear)
 
             SHEET.values().update(
                 spreadsheetId=VOODOO_SHEET_ID,
@@ -94,58 +96,94 @@ async def on_message_edit(_, after):
             return
         legibleDateTime = str(datetime.utcfromtimestamp(
             gameTime) - timedelta(hours=4))
-        currentScheduledGames = botSheet.row_values(2)
 
-        if not currentScheduledGames:
+        RSVP_sheet_values = SHEET.values().get(
+                spreadsheetId=VOODOO_SHEET_ID,
+                range=RSVP_SHEET_RANGE,
+                valueRenderOption='FORMATTED_VALUE'
+        ).execute().get('values', [])
+
+        existing_players = SHEET.values().get(
+            spreadsheetId=VOODOO_SHEET_ID,
+            range=ROSTER_DB_RANGE_NAME
+        ).execute().get('values', [])
+
+        existing_IDs = []
+
+        for player in existing_players:
+            if len(player) >= 5:
+                existing_IDs.append(player[4])
+
+        Current_Scheduled_Games = RSVP_sheet_values[0]
+
+        if not Current_Scheduled_Games:
             j = -1
 
-        for j, gameTime in enumerate(currentScheduledGames):
+        for j, gameTime in enumerate(Current_Scheduled_Games):
             if legibleDateTime == gameTime:
                 colLetter = column_index_to_letter(j+1)
 
-                confirmedSheetRange = [colLetter+'4:'+colLetter+'19']
-                botSheet.batch_clear(confirmedSheetRange)
+                Confirmed_Range = 'RSVP Sheet!'+colLetter+'4:'+colLetter+'19'
+                Maybe_Range = 'RSVP Sheet!'+colLetter+'21:'+colLetter+'35'
 
-                maybeSheetRange = [colLetter+'21:'+colLetter+'26']
-                botSheet.batch_clear(maybeSheetRange)
+                ranges_to_clear = [Confirmed_Range, Maybe_Range]
+
+                await cellOperations.rangeClear(ranges_to_clear)
 
                 [confirmedPlayers, maybePlayers] = getPlayers(embedded_data)
 
-                existing_players = SHEET.values().get(
-                    spreadsheetId=VOODOO_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
-                existing_ids = [row[4] for row in existing_players if len(row) > 2]
-
                 for i, id in enumerate(confirmedPlayers):
-                    index = voodooTeam["DISCORD USER ID"].index(int(id))
-                    position = voodooTeam["POSITION"][index]
-                    botSheet.update_cell(
-                        i+4, j+1, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
+                    if id in existing_IDs:
+                        index = existing_IDs.index(id)
+                        First_Name = existing_players[index][1]
+                        Position = existing_players[index][3]
+                        Player_Cell = 'RSVP SHEET!' + colLetter + str(i + 4)
+                        Player_Value = First_Name + ' (' + Position + ')'
+
+                        await cellOperations.updateCell(Player_Cell, Player_Value)
+
                 for i, id in enumerate(maybePlayers):
-                    index = voodooTeam["DISCORD USER ID"].index(int(id))
-                    position = voodooTeam["POSITION"][index]
-                    botSheet.update_cell(
-                        i+21, j+1, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
+                    if id in existing_IDs:
+                        index = existing_IDs.index(id)
+                        First_Name = existing_players[index][1]
+                        Position = existing_players[index][3]
+                        Player_Cell = 'RSVP SHEET!' + colLetter + str(i + 21)
+                        Player_Value = First_Name + ' (' + Position + ')'
+
+                        await cellOperations.updateCell(Player_Cell, Player_Value)
                 return
 
         colLetter = column_index_to_letter(j+2)
-        botSheet.update_cell(2, j+2, legibleDateTime)
 
-        confirmedSheetRange = [colLetter + '4:' + colLetter + '19']
-        botSheet.batch_clear(confirmedSheetRange)
+        Confirmed_Range = 'RSVP Sheet!' + colLetter + '4:' + colLetter + '19'
+        Maybe_Range = 'RSVP Sheet!' + colLetter + '21:' + colLetter + '35'
 
-        maybeSheetRange = [colLetter + '21:' + colLetter + '26']
-        botSheet.batch_clear(maybeSheetRange)
+        Date_Cell = 'RSVP SHEET!' + colLetter + '2'
+
+        await cellOperations.updateCell(Date_Cell, legibleDateTime)
+
+        ranges_to_clear = [Confirmed_Range, Maybe_Range]
+
+        await cellOperations.rangeClear(ranges_to_clear)
 
         [confirmedPlayers, maybePlayers] = getPlayers(embedded_data)
 
         for i, id in enumerate(confirmedPlayers):
-            index = voodooTeam["DISCORD USER ID"].index(int(id))
-            position = voodooTeam["POSITION"][index]
-            botSheet.update_cell(
-                i + 4, j + 2, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
+            if id in existing_IDs:
+                index = existing_IDs.index(id)
+                First_Name = existing_players[index][1]
+                Position = existing_players[index][3]
+                Player_Cell = 'RSVP SHEET!' + colLetter + str(i + 4)
+                Player_Value = First_Name + ' (' + Position + ')'
+
+                await cellOperations.updateCell(Player_Cell, Player_Value)
 
         for i, id in enumerate(maybePlayers):
-            index = voodooTeam["DISCORD USER ID"].index(int(id))
-            position = voodooTeam["POSITION"][index]
-            botSheet.update_cell(
-                i + 21, j + 2, voodooTeam["PLAYER NAME"][index] + ' (' + position + ')')
+            if id in existing_IDs:
+                index = existing_IDs.index(id)
+                First_Name = existing_players[index][1]
+                Position = existing_players[index][3]
+                Player_Cell = 'RSVP SHEET!' + colLetter + str(i + 21)
+                Player_Value = First_Name + ' (' + Position + ')'
+
+                await cellOperations.updateCell(Player_Cell, Player_Value)

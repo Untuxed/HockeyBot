@@ -21,7 +21,7 @@ async def getMyStats(interaction: discord.Interaction):
     memberID = str(interaction.user.id)
 
     # Fetch all players from the Google Sheet
-    players = sheet.values().get(spreadsheetId=VOODOO_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
+    players = SHEET.values().get(spreadsheetId=VOODOO_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
 
     # Find the player with the matching ID
     player = next((player for player in players if player[4] == memberID), None)
@@ -47,7 +47,7 @@ async def viewAllStats(interaction: discord.Interaction, member: discord.Member)
     memberID = str(member.id)
 
     # Fetch all players from the Google Sheet
-    players = sheet.values().get(spreadsheetId=VOODOO_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
+    players = SHEET.values().get(spreadsheetId=VOODOO_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
 
     # Find the player with the matching ID
     player = next((player for player in players if player[4] == memberID), None)
@@ -104,7 +104,7 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
     memberID = str(member.id)
 
     # Fetch all players from the Google Sheet
-    players = sheet.values().get(spreadsheetId=VOODOO_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
+    players = SHEET.values().get(spreadsheetId=VOODOO_SHEET_ID, range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
 
     # Find the player with the matching ID
     for i, player in enumerate(players):
@@ -118,7 +118,7 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
             player[12] = player[11] / player[8]  # Update average points per game
 
             # Update the player's stats in the Google Sheet
-            sheet.values().update(
+            SHEET.values().update(
                 spreadsheetId=VOODOO_SHEET_ID,
                 range=f'ROSTER DB!A{i+2}:N{i+2}',
                 valueInputOption='USER_ENTERED',
