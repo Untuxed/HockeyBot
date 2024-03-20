@@ -12,4 +12,4 @@ intents.members = True
 hockeyBot = discord.Client(intents=intents)
 tree = app_commands.CommandTree(hockeyBot)
 GUILD_ID = discord.Object(id=107270946418622464)  # Personal server
-GUILD_ID = discord.Object(id=1218284808552317009)  # Voodoo server
+# GUILD_ID = discord.Object(id=1218284808552317009)  # Voodoo server
