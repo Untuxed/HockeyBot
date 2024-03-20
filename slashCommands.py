@@ -16,6 +16,8 @@ async def getMyStats(interaction: discord.Interaction):
     player = get_player(memberID)
     stats_message = generate_stats_message(player)
     await interaction.response.send_message(stats_message)
+
+
 # endregion
 
 
@@ -35,6 +37,8 @@ async def viewAllStats(interaction: discord.Interaction, member: discord.Member)
     except ValueError:
         # If the player wasn't found, send an error message
         await interaction.response.send_message('Player does not exist.')
+
+
 # endregion get-player-stats
 
 
@@ -66,12 +70,15 @@ async def Lines(interaction: discord.Interaction):
     lineup = generate_lineup_card(forwards, defense, goalie)
 
     await interaction.response.send_message('```' + lineup + '```')
+
+
 # endregion get-lineup
 
 
 # region update-stats - adds stats from a single game to the stats sheet
 @tree.command(name='update-stats', description='Increment a players stats', guild=GUILD_ID)
-async def updateStats(interaction: discord.Interaction, member: discord.Member, goals: int = 0, assists: int = 0, pims: int = 0):
+async def updateStats(interaction: discord.Interaction, member: discord.Member, goals: int = 0, assists: int = 0,
+                      pims: int = 0):
     # Get the member's ID
     memberID = str(member.id)
 
@@ -92,7 +99,7 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
             # Update the player's stats in the Google Sheet
             SHEET.values().update(
                 spreadsheetId=VOODOO_SHEET_ID,
-                range=f'ROSTER DB!A{i+2}:N{i+2}',
+                range=f'ROSTER DB!A{i + 2}:N{i + 2}',
                 valueInputOption='USER_ENTERED',
                 body={'values': [player]}
             ).execute()
@@ -101,12 +108,15 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
             return
 
     await interaction.response.send_message('Player ID does not exist.')
+
+
 # endregion update-stats
 
 
 # region update-roster
 @tree.command(name='update-roster', description='Adds a Player to the sheets db', guild=GUILD_ID)
-async def addPlayer(interaction: discord.Interaction, member: discord.Member, gp: int = 0, goals: int = 0, assists: int = 0, pims: int = 0):
+async def addPlayer(interaction: discord.Interaction, member: discord.Member, gp: int = 0, goals: int = 0,
+                    assists: int = 0, pims: int = 0):
     memberID = str(member.id)
     memberRoles = member.roles
 
@@ -163,17 +173,21 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member, gp
 
     # Append new player to roster
     new_player = [number, firstName, lastName, position, memberID, status, isCaptain, handedness,
-                  gp, goals, assists, goals+assists, (goals+assists)/gp if gp != 0 else 0, pims]
+                  gp, goals, assists, goals + assists, (goals + assists) / gp if gp != 0 else 0, pims]
     SHEET.values().append(spreadsheetId=VOODOO_SHEET_ID, range=ROSTER_DB_RANGE_NAME, body={
         'values': [new_player]}, valueInputOption='RAW').execute()
 
     await interaction.response.send_message('Player added successfully.')
+
+
 # endregion update-roster
-    
+
 # region avatar: goofy code
 @tree.command(name="avatar", description="Get user avatar", guild=GUILD_ID)
 async def avatar(interaction: discord.Interaction, member: discord.Member):
     await interaction.response.send_message(member.display_avatar)
+
+
 # endregion avatar
 
 
