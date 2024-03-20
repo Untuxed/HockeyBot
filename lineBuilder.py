@@ -10,7 +10,7 @@ import cellOperations
 async def on_message(message):
     if message.content and str(message.author) == 'sesh#1244':
         if int(re.search(r'\d+', str(message.content)).group(0)) == 1218300771318370395:
-            RSVP_sheet_values = cellOperations.get_RSVP_Table()
+            RSVP_sheet_values = cellOperations.Get_Cell_Range(RSVP_SHEET_RANGE)
 
             excludedKeywords = ['Robot Database', 'Confirmed', 'Maybes']
 
@@ -87,11 +87,7 @@ async def on_message_edit(_, after):
         legibleDateTime = str(datetime.utcfromtimestamp(
             gameTime) - timedelta(hours=4))
 
-        RSVP_sheet_values = SHEET.values().get(
-                spreadsheetId=VOODOO_SHEET_ID,
-                range=RSVP_SHEET_RANGE,
-                valueRenderOption='FORMATTED_VALUE'
-        ).execute().get('values', [])
+        RSVP_sheet_values = cellOperations.Get_Cell_Range(RSVP_SHEET_RANGE)
 
         existing_players = cellOperations.get_players()
 

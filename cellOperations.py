@@ -25,10 +25,10 @@ async def Update_Cell_Range(range, values):
     ).execute()
 
 
-def get_RSVP_Table():
+def Get_Cell_Range(range):
     return SHEET.values().get(
                 spreadsheetId=VOODOO_SHEET_ID,
-                range=RSVP_SHEET_RANGE,
+                range=range,
                 valueRenderOption='FORMATTED_VALUE'
             ).execute().get('values', [])
 
