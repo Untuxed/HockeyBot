@@ -7,7 +7,10 @@ sheet = googleDoc.get_worksheet(0)
 
 # Specify Google Sheet ID and range
 VOODOO_SHEET_ID = sheet.spreadsheet.id
-LINEUP_RANGE_NAME = 'Lineup!A1:C14'
+FORWARDS_LINEUP_RANGE = 'Lineup!A5:C8'
+DEFENSE_LINEUP_RANGE = 'Lineup!A11:C13'
+GOALIE_LINEUP_RANGE = 'Lineup!A16:C16'
+LINEUP_RANGE_NAME = 'Lineup!A5:C16'
 ROSTER_DB_RANGE_NAME = 'Roster DB!A2:Z100'
 RSVP_SHEET_RANGE = 'RSVP Sheet!A2:H35'
 
