@@ -77,8 +77,9 @@ async def Lines(interaction: discord.Interaction):
 
 # region update-stats - adds stats from a single game to the stats sheet
 @tree.command(name='update-stats', description='Increment a players stats', guild=GUILD_ID)
-async def updateStats(interaction: discord.Interaction, member: discord.Member, gp: int = 0, goals: int = 0,
-                      assists: int = 0, pims: int = 0):
+
+async def updateStats(interaction: discord.Interaction, member: discord.Member, goals: int = 0, assists: int = 0, pims: int = 0, gp: int = 0):
+
     # Get the member's ID
     memberID = str(member.id)
 
@@ -89,7 +90,11 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
     for i, player in enumerate(players):
         if player[4] == memberID:
             # Update the player's stats
+
             player[8] = gp  # Update GP
+
+            player[8] = gp # Update GP
+
             player[9] = int(player[9]) + goals  # Update goals
             player[10] = int(player[10]) + assists  # Update assists
             player[13] = int(player[13]) + pims  # Update PIMS
