@@ -2,6 +2,7 @@ import cv2
 from datetime import datetime
 import cellOperations
 import sheets
+import random
 
 
 # Forwards Pixel Range 860 x 200 to 1950 x 715
@@ -18,10 +19,14 @@ def imageGenerator():
         else:
             return ' '
 
-    Base_Lineup_Image = cv2.imread('./BaseLineupCard.png')
+    def randomTextColor():
+        return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
 
-    Font_Size = 1.2
-    Font_Weight = 2
+    Base_Lineup_Image = cv2.imread('./BaseLineupCard.png')
+    Dennis_Base_Lineup_Image = cv2.imread('./Dennis_BaseLineupCard.png')
+
+    Font_Size = 1.5
+    Font_Weight = 3
     Font_Color = (0, 0, 0)
     Font_Type = cv2.FONT_HERSHEY_DUPLEX
 
@@ -109,6 +114,42 @@ def imageGenerator():
             thickness=Font_Weight
         )
 
+        randomColor = randomTextColor()
+
+        cv2.putText(
+            Dennis_Base_Lineup_Image,
+            LW_Text,
+            (int(760 + (375 - LW_Width[0][0]) / 2), 200 + i * Forward_Y_Spacing),
+            fontFace=Font_Type,
+            fontScale=Font_Size,
+            color=randomColor,
+            thickness=Font_Weight
+        )
+
+        randomColor = randomTextColor()
+
+        cv2.putText(
+            Dennis_Base_Lineup_Image,
+            C_Text,
+            (int(1327.5 - C_Width[0][0] / 2), 200 + i * Forward_Y_Spacing),
+            fontFace=Font_Type,
+            fontScale=Font_Size,
+            color=randomColor,
+            thickness=Font_Weight
+        )
+
+        randomColor = randomTextColor()
+
+        cv2.putText(
+            Dennis_Base_Lineup_Image,
+            RW_Text,
+            (int(1515 + (375 - RW_Width[0][0]) / 2), 200 + i * Forward_Y_Spacing),
+            fontFace=Font_Type,
+            fontScale=Font_Size,
+            color=randomColor,
+            thickness=Font_Weight
+        )
+
     for i, Line in enumerate(Defense):
         LD_Text = numberLookup(Line[0])
         RD_Text = numberLookup(Line[1])
@@ -136,6 +177,30 @@ def imageGenerator():
             thickness=Font_Weight
         )
 
+        randomColor = randomTextColor()
+
+        cv2.putText(
+            Dennis_Base_Lineup_Image,
+            LD_Text,
+            (int(760 + (567.5 - LD_Width[0][0]) / 2), 870 + i * Defense_Y_Spacing),
+            fontFace=Font_Type,
+            fontScale=Font_Size,
+            color=randomColor,
+            thickness=Font_Weight
+        )
+
+        randomColor = randomTextColor()
+
+        cv2.putText(
+            Dennis_Base_Lineup_Image,
+            RD_Text,
+            (int(1327.5 + (567.5 - RD_Width[0][0]) / 2), 870 + i * Defense_Y_Spacing),
+            fontFace=Font_Type,
+            fontScale=Font_Size,
+            color=randomColor,
+            thickness=Font_Weight
+        )
+
     G_Text = numberLookup(Goalie[0][1])
 
     Lineup_Image_W_Text = cv2.putText(
@@ -148,6 +213,18 @@ def imageGenerator():
         thickness=Font_Weight
     )
 
+    randomColor = randomTextColor()
+
+    Dennis_Lineup_Image_W_Text = cv2.putText(
+        Dennis_Base_Lineup_Image,
+        G_Text,
+        (int(1327.5 - C_Width[0][0] / 2), 1500),
+        fontFace=Font_Type,
+        fontScale=Font_Size,
+        color=randomColor,
+        thickness=Font_Weight
+    )
+
     Game_Dates = cellOperations.Get_Cell_Range(sheets.RSVP_SHEET_RANGE)[0]
     Earliest_Game_Date = Game_Dates[0]
 
@@ -156,6 +233,7 @@ def imageGenerator():
     if Earliest_Game_Date:
         timestamp = (Earliest_Game_Date - datetime(1970, 1, 1)).total_seconds()
         cv2.imwrite(f'./LineUpWithName_{timestamp}.png', Lineup_Image_W_Text)
+        cv2.imwrite(f'./DennisLineUpWithName_{timestamp}.png', Dennis_Lineup_Image_W_Text)
         return f'./LineUpWithName_{timestamp}.png'
     else:
         return
@@ -169,6 +247,6 @@ def pullImage():
 
     if Earliest_Game_Date:
         timestamp = (Earliest_Game_Date - datetime(1970, 1, 1)).total_seconds()
-        return f'./LineUpWithName_{timestamp}.png'
+        return f'./LineUpWithName_{timestamp}.png', f'./DennisLineUpWithName_{timestamp}.png'
     else:
         return

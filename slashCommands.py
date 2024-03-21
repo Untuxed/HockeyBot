@@ -52,7 +52,7 @@ async def setLines(interaction: discord.Interaction):
     if not Lineup_File_Name:
         await interaction.response.send_message('Something went wrong, looking into it.')
 
-    Lineup_File_Name = pullImage()
+    Lineup_File_Name, _ = pullImage()
 
     if not Lineup_File_Name:
         await interaction.response.send_message('Something went wrong, looking into it.')
@@ -69,14 +69,14 @@ async def setLines(interaction: discord.Interaction):
     guild=GUILD_ID
 )
 async def getLines(interaction: discord.Interaction):
-    Lineup_File_Name = pullImage()
+    Lineup_File_Name, Dennis_Lineup_File_Name = pullImage()
 
     if not Lineup_File_Name:
         await interaction.response.send_message('Something went wrong, looking into it.')
     elif not os.path.exists(Lineup_File_Name):
         await interaction.response.send_message('Lineup for the upcoming game not set yet.')
     elif int(interaction.user.id) == 1158794675558285385:
-        await interaction.response.send_message('**Denny\'s Wittle Wineup Card**', file=discord.File(fp=Lineup_File_Name))
+        await interaction.response.send_message('**Denny\'s Wittle Wineup Card**', file=discord.File(fp=Dennis_Lineup_File_Name))
     else:
         await interaction.response.send_message('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
 
@@ -84,7 +84,7 @@ async def getLines(interaction: discord.Interaction):
 # endregion get-lineup-new
 
 # region get-lineup-old: pulls the current lines from the google sheet
-@tree.command(name='get-lines-old', description='(WIP) Gets the lineup from the google sheet', guild=GUILD_ID)
+@tree.command(name='get-lines-old', description='(Depreciated) Gets the lineup from the google sheet', guild=GUILD_ID)
 async def Lines(interaction: discord.Interaction):
     def generate_lineup_card(f, d, g):
         header = [["------", "Lineup Card", "------"]]
