@@ -10,46 +10,9 @@ import cellOperations
 async def on_message(message):
     if message.content and str(message.author) == 'sesh#1244':
         if int(re.search(r'\d+', str(message.content)).group(0)) == 1218300771318370395:
-            RSVP_sheet_values = SHEET.values().get(
-                spreadsheetId=VOODOO_SHEET_ID,
-                range=RSVP_SHEET_RANGE,
-                valueRenderOption='FORMATTED_VALUE'
-            ).execute().get('values', [])
+            RSVP_sheet_values = cellOperations.Get_Cell_Range(RSVP_SHEET_RANGE)
 
             excludedKeywords = ['Robot Database', 'Confirmed', 'Maybes']
-
-            # forwardsRange = 'A3:C6'
-            # defenseRange = 'A9:C12'
-            # goalieRange = 'A14:C14'
-            #
-            # players = [
-            #     name for sublist in
-            #     [
-            #         sheet.get(forwardsRange),
-            #         sheet.get(defenseRange),
-            #         sheet.get(goalieRange)
-            #     ] for inner_list in sublist for name in inner_list
-            # ]
-            # flattenedPlayers = [name for name in players if name != '']
-            #
-            # Database_Players = sheet.values().get(spreadsheetId=VOODOO_SHEET_ID,
-            #                              range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
-            #
-            # for player in flattenedPlayers:
-            #     for i, Database_Player in Database_Players:
-            #         if player == Database_Player[1] or player == Database_Player[2]:
-            #             # Update the player's stats
-            #             Database_Player[8] = int(Database_Player[8] + 1)  # Update GP
-            #
-            #             # Update the player's stats in the Google Sheet
-            #             sheet.values().update(
-            #                 spreadsheetId=VOODOO_SHEET_ID,
-            #                 range=f'ROSTER DB!A{i + 2}:N{i + 2}',
-            #                 valueInputOption='USER_ENTERED',
-            #                 body={'values': [player]}
-            #             ).execute()
-            #             print('increment GP')
-            #             return
 
             for j, row in enumerate(RSVP_sheet_values):
                 if row and row[0] not in excludedKeywords:
@@ -57,14 +20,8 @@ async def on_message(message):
 
             ranges_to_clear = ['RSVP Sheet!A2:H2', 'RSVP Sheet!A4:H19', 'RSVP Sheet!A21:H35']
 
-            await cellOperations.rangeClear(ranges_to_clear)
-
-            SHEET.values().update(
-                spreadsheetId=VOODOO_SHEET_ID,
-                range=RSVP_SHEET_RANGE,
-                valueInputOption='RAW',
-                body={"values": RSVP_sheet_values}
-            ).execute()
+            await cellOperations.Range_Clear(ranges_to_clear)
+            await cellOperations.Update_Cell_Range(RSVP_SHEET_RANGE, RSVP_sheet_values)
 
 
 @hockeyBot.event
@@ -97,16 +54,9 @@ async def on_message_edit(_, after):
         legibleDateTime = str(datetime.utcfromtimestamp(
             gameTime) - timedelta(hours=4))
 
-        RSVP_sheet_values = SHEET.values().get(
-                spreadsheetId=VOODOO_SHEET_ID,
-                range=RSVP_SHEET_RANGE,
-                valueRenderOption='FORMATTED_VALUE'
-        ).execute().get('values', [])
+        RSVP_sheet_values = cellOperations.Get_Cell_Range(RSVP_SHEET_RANGE)
 
-        existing_players = SHEET.values().get(
-            spreadsheetId=VOODOO_SHEET_ID,
-            range=ROSTER_DB_RANGE_NAME
-        ).execute().get('values', [])
+        existing_players = cellOperations.get_players()
 
         existing_IDs = []
 
@@ -128,7 +78,7 @@ async def on_message_edit(_, after):
 
                 ranges_to_clear = [Confirmed_Range, Maybe_Range]
 
-                await cellOperations.rangeClear(ranges_to_clear)
+                await cellOperations.Range_Clear(ranges_to_clear)
 
                 [confirmedPlayers, maybePlayers] = getPlayers(embedded_data)
 
@@ -140,7 +90,7 @@ async def on_message_edit(_, after):
                         Player_Cell = 'RSVP SHEET!' + colLetter + str(i + 4)
                         Player_Value = First_Name + ' (' + Position + ')'
 
-                        await cellOperations.updateCell(Player_Cell, Player_Value)
+                        await cellOperations.Update_Cell(Player_Cell, Player_Value)
 
                 for i, id in enumerate(maybePlayers):
                     if id in existing_IDs:
@@ -150,7 +100,7 @@ async def on_message_edit(_, after):
                         Player_Cell = 'RSVP SHEET!' + colLetter + str(i + 21)
                         Player_Value = First_Name + ' (' + Position + ')'
 
-                        await cellOperations.updateCell(Player_Cell, Player_Value)
+                        await cellOperations.Update_Cell(Player_Cell, Player_Value)
                 return
 
         colLetter = column_index_to_letter(j+2)
@@ -160,11 +110,11 @@ async def on_message_edit(_, after):
 
         Date_Cell = 'RSVP SHEET!' + colLetter + '2'
 
-        await cellOperations.updateCell(Date_Cell, legibleDateTime)
+        await cellOperations.Update_Cell(Date_Cell, legibleDateTime)
 
         ranges_to_clear = [Confirmed_Range, Maybe_Range]
 
-        await cellOperations.rangeClear(ranges_to_clear)
+        await cellOperations.Range_Clear(ranges_to_clear)
 
         [confirmedPlayers, maybePlayers] = getPlayers(embedded_data)
 
@@ -176,7 +126,7 @@ async def on_message_edit(_, after):
                 Player_Cell = 'RSVP SHEET!' + colLetter + str(i + 4)
                 Player_Value = First_Name + ' (' + Position + ')'
 
-                await cellOperations.updateCell(Player_Cell, Player_Value)
+                await cellOperations.Update_Cell(Player_Cell, Player_Value)
 
         for i, id in enumerate(maybePlayers):
             if id in existing_IDs:
@@ -186,4 +136,4 @@ async def on_message_edit(_, after):
                 Player_Cell = 'RSVP SHEET!' + colLetter + str(i + 21)
                 Player_Value = First_Name + ' (' + Position + ')'
 
-                await cellOperations.updateCell(Player_Cell, Player_Value)
+                await cellOperations.Update_Cell(Player_Cell, Player_Value)
