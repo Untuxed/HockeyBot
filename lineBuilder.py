@@ -14,39 +14,6 @@ async def on_message(message):
 
             excludedKeywords = ['Robot Database', 'Confirmed', 'Maybes']
 
-            # forwardsRange = 'A3:C6'
-            # defenseRange = 'A9:C12'
-            # goalieRange = 'A14:C14'
-            #
-            # players = [
-            #     name for sublist in
-            #     [
-            #         sheet.get(forwardsRange),
-            #         sheet.get(defenseRange),
-            #         sheet.get(goalieRange)
-            #     ] for inner_list in sublist for name in inner_list
-            # ]
-            # flattenedPlayers = [name for name in players if name != '']
-            #
-            # Database_Players = sheet.values().get(spreadsheetId=VOODOO_SHEET_ID,
-            #                              range=ROSTER_DB_RANGE_NAME).execute().get('values', [])
-            #
-            # for player in flattenedPlayers:
-            #     for i, Database_Player in Database_Players:
-            #         if player == Database_Player[1] or player == Database_Player[2]:
-            #             # Update the player's stats
-            #             Database_Player[8] = int(Database_Player[8] + 1)  # Update GP
-            #
-            #             # Update the player's stats in the Google Sheet
-            #             sheet.values().update(
-            #                 spreadsheetId=VOODOO_SHEET_ID,
-            #                 range=f'ROSTER DB!A{i + 2}:N{i + 2}',
-            #                 valueInputOption='USER_ENTERED',
-            #                 body={'values': [player]}
-            #             ).execute()
-            #             print('increment GP')
-            #             return
-
             for j, row in enumerate(RSVP_sheet_values):
                 if row and row[0] not in excludedKeywords:
                     row.pop(0)

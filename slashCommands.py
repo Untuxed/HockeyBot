@@ -5,7 +5,7 @@ import re
 from tabulate import tabulate
 from googleStuff import *
 from sheets import *
-from cellOperations import get_player, get_players, generate_stats_message
+from cellOperations import get_player, get_players, generate_stats_message, Update_Cell_Range
 
 
 # region get-my-stats: pulls your stats from the google sheet
@@ -31,7 +31,7 @@ async def viewAllStats(interaction: discord.Interaction, member: discord.Member)
         # Try to get the player
         player = get_player(memberID)
         # If the player was found, send their stats
-        generate_stats_message(player)
+        stats_message = generate_stats_message(player)
         await interaction.response.send_message(stats_message)
 
     except ValueError:
@@ -59,9 +59,9 @@ async def Lines(interaction: discord.Interaction):
             goalie_header + g
         return tabulate(lineup_card, stralign="center")
 
-    forwardsRange = 'A3:C6'
-    defenseRange = 'A9:C12'
-    goalieRange = 'A14:C14'
+    forwardsRange = 'A5:C8'
+    defenseRange = 'A11:C13'
+    goalieRange = 'A16:C16'
 
     forwards = sheet.get(forwardsRange)
     defense = sheet.get(defenseRange)
@@ -77,8 +77,8 @@ async def Lines(interaction: discord.Interaction):
 
 # region update-stats - adds stats from a single game to the stats sheet
 @tree.command(name='update-stats', description='Increment a players stats', guild=GUILD_ID)
-async def updateStats(interaction: discord.Interaction, member: discord.Member, goals: int = 0, assists: int = 0,
-                      pims: int = 0):
+async def updateStats(interaction: discord.Interaction, member: discord.Member, gp: int = 0, goals: int = 0,
+                      assists: int = 0, pims: int = 0):
     # Get the member's ID
     memberID = str(member.id)
 
@@ -89,7 +89,7 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
     for i, player in enumerate(players):
         if player[4] == memberID:
             # Update the player's stats
-            player[8] = int(player[8])  # Update GP
+            player[8] = gp  # Update GP
             player[9] = int(player[9]) + goals  # Update goals
             player[10] = int(player[10]) + assists  # Update assists
             player[13] = int(player[13]) + pims  # Update PIMS
@@ -97,12 +97,8 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
             player[12] = player[11] / player[8]  # Update average points per game
 
             # Update the player's stats in the Google Sheet
-            SHEET.values().update(
-                spreadsheetId=VOODOO_SHEET_ID,
-                range=f'ROSTER DB!A{i + 2}:N{i + 2}',
-                valueInputOption='USER_ENTERED',
-                body={'values': [player]}
-            ).execute()
+
+            await Update_Cell_Range(f'ROSTER DB!A{i + 2}:N{i + 2}', player)
 
             await interaction.response.send_message(f'Updated {player[1]} {player[2]}\'s stats.')
             return
@@ -189,11 +185,3 @@ async def avatar(interaction: discord.Interaction, member: discord.Member):
 
 
 # endregion avatar
-
-
-# region clear sheet
-@tree.command(name='sheet-clear-players', description='DO NOT USE', guild=GUILD_ID)
-async def clearRSVPs(interaction: discord.Interaction):
-    botSheet.batch_clear(["A4:A19", "A21:A30"])
-    await interaction.response.send_message('Cleared RSVP list, I hope you meant to do that.')
-# endregion clear sheet

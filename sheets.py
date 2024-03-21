@@ -1,4 +1,3 @@
-import gspread
 from googleStuff import *
 
 client = gspread.authorize(creds)

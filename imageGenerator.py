@@ -78,7 +78,7 @@ for i, Line in enumerate(Defense):
 
 Lineup_Image_W_Text = cv2.putText(
         Base_Lineup_Image,
-        Goalie[0][0],
+        Goalie[0][1],
         (int(1425 - C_Width[0][0]/2), 1550),
         fontFace=Font_Type,
         fontScale=Font_Size,
