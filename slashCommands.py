@@ -1,11 +1,9 @@
 from discordStuff import *
-import json
-import os
 import re
 from tabulate import tabulate
-from googleStuff import *
 from sheets import *
 from cellOperations import get_player, get_players, generate_stats_message, Update_Cell_Range
+from imageGenerator import imageGenerator, pullImage
 
 
 # region get-my-stats: pulls your stats from the google sheet
@@ -41,9 +39,49 @@ async def viewAllStats(interaction: discord.Interaction, member: discord.Member)
 
 # endregion get-player-stats
 
+# region set-lineup: pulls the lineup from the google sheet and displays them in the image form
+@tree.command(
+    name='set-lineup',
+    description='Set lineup from the google sheet, generates lineup card image, responds with lineup card image.',
+    guild=GUILD_ID
+)
+async def setLines(interaction: discord.Interaction):
+    Lineup_File_Name = imageGenerator()
 
-# region get-lineup: pulls the current lines from the google sheet
-@tree.command(name='lines', description='(WIP) Gets the lineup from the google sheet', guild=GUILD_ID)
+    if not Lineup_File_Name:
+        await interaction.response.send_message('Something went wrong, looking into it.')
+
+    Lineup_File_Name = pullImage()
+
+    if not Lineup_File_Name:
+        await interaction.response.send_message('Something went wrong, looking into it.')
+    else:
+        await interaction.response.send_message('**Latest Lineup Card**', file=Lineup_File_Name)
+
+
+# endregion set-lineup
+
+# region get-lineup-new: pulls the current lines from the google sheet in image format
+@tree.command(
+    name='get-lineup',
+    description='Gets image of the current lines.',
+    guild=GUILD_ID
+)
+async def getLines(interaction: discord.Interaction, member: discord.Member):
+    Lineup_File_Name = pullImage()
+
+    if not Lineup_File_Name:
+        await interaction.response.send_message('Lineup is probably not set yet, or the bot is broken.')
+    elif int(member.id) == 1158794675558285385:
+        await interaction.response.send_message('**Denny\'s Wittle Wineup Card**', file=Lineup_File_Name)
+    else:
+        await interaction.response.send_message('**Latest Lineup Card**', file=Lineup_File_Name)
+
+
+# endregion get-lineup-new
+
+# region get-lineup-old: pulls the current lines from the google sheet
+@tree.command(name='get-lines-old', description='(WIP) Gets the lineup from the google sheet', guild=GUILD_ID)
 async def Lines(interaction: discord.Interaction):
     def generate_lineup_card(f, d, g):
         header = [["------", "Lineup Card", "------"]]
@@ -72,14 +110,13 @@ async def Lines(interaction: discord.Interaction):
     await interaction.response.send_message('```' + lineup + '```')
 
 
-# endregion get-lineup
+# endregion get-lineup-old
 
 
 # region update-stats - adds stats from a single game to the stats sheet
 @tree.command(name='update-stats', description='Increment a players stats', guild=GUILD_ID)
-
-async def updateStats(interaction: discord.Interaction, member: discord.Member, goals: int = 0, assists: int = 0, pims: int = 0, gp: int = 0):
-
+async def updateStats(interaction: discord.Interaction, member: discord.Member, goals: int = 0, assists: int = 0,
+                      pims: int = 0, gp: int = 0):
     # Get the member's ID
     memberID = str(member.id)
 
@@ -93,7 +130,7 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
 
             player[8] = gp  # Update GP
 
-            player[8] = gp # Update GP
+            player[8] = gp  # Update GP
 
             player[9] = int(player[9]) + goals  # Update goals
             player[10] = int(player[10]) + assists  # Update assists
@@ -187,6 +224,5 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member, gp
 @tree.command(name="avatar", description="Get user avatar", guild=GUILD_ID)
 async def avatar(interaction: discord.Interaction, member: discord.Member):
     await interaction.response.send_message(member.display_avatar)
-
 
 # endregion avatar

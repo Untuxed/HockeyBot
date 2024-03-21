@@ -16,19 +16,19 @@ async def Update_Cell(cell, value):
     ).execute()
 
 
-async def Update_Cell_Range(range, values):
+async def Update_Cell_Range(r, values):
     SHEET.values().update(
         spreadsheetId=VOODOO_SHEET_ID,
-        range=range,
+        range=r,
         valueInputOption='RAW',
         body={"values": values}
     ).execute()
 
 
-def Get_Cell_Range(range):
+def Get_Cell_Range(r):
     return SHEET.values().get(
                 spreadsheetId=VOODOO_SHEET_ID,
-                range=range,
+                range=r,
                 valueRenderOption='FORMATTED_VALUE'
             ).execute().get('values', [])
 
@@ -59,5 +59,5 @@ def generate_stats_message(player):
     number, firstName, lastName, position, memberID, status, isCaptain, handedness, gp, goals, assists, total, avg, pims = player
     stats_dict = {'GP': gp, 'GOALS': goals, 'ASSISTS': assists, 'TOTAL': total, 'PIMS': pims}
     stats_lines = [f'{key}: {value}' for key, value in stats_dict.items()]
-    stats_message = f'**Stats for {firstName} {lastName}:**\n' + '\n'.join(stats_lines)
+    stats_message = f'**Stats for {firstName} {lastName}:**\n' + '```' + '\n'.join(stats_lines) + '```'
     return stats_message
