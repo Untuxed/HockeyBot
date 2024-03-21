@@ -155,7 +155,7 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
 
 
 # region update-roster
-@tree.command(name='update-roster', description='Adds a Player to the sheets db', guild=GUILD_ID)
+@tree.command(name='add-player', description='Adds a Player to the sheets db', guild=GUILD_ID)
 async def addPlayer(interaction: discord.Interaction, member: discord.Member, gp: int = 0, goals: int = 0,
                     assists: int = 0, pims: int = 0):
     memberID = str(member.id)
