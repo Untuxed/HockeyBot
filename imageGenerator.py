@@ -12,9 +12,9 @@ def imageGenerator():
             if playerName in existing_names:
                 index = existing_names.index(playerName)
                 Player_Number = existing_players[index][0]
-                return f'{Player_Number} - ' + Line[0]
+                return f'{Player_Number} - ' + playerName
             else:
-                return '## - ' + Line[0]
+                return '## - ' + playerName
         else:
             return ' '
 
@@ -151,6 +151,8 @@ def imageGenerator():
     Game_Dates = cellOperations.Get_Cell_Range(sheets.RSVP_SHEET_RANGE)[0]
     Earliest_Game_Date = Game_Dates[0]
 
+    Earliest_Game_Date = datetime.strptime(Earliest_Game_Date, '%Y-%m-%d %H:%M:%S')
+
     if Earliest_Game_Date:
         timestamp = (Earliest_Game_Date - datetime(1970, 1, 1)).total_seconds()
         cv2.imwrite(f'./LineUpWithName_{timestamp}.png', Lineup_Image_W_Text)
@@ -162,6 +164,8 @@ def imageGenerator():
 def pullImage():
     Game_Dates = cellOperations.Get_Cell_Range(sheets.RSVP_SHEET_RANGE)[0]
     Earliest_Game_Date = Game_Dates[0]
+
+    Earliest_Game_Date = datetime.strptime(Earliest_Game_Date, '%Y-%m-%d %H:%M:%S')
 
     if Earliest_Game_Date:
         timestamp = (Earliest_Game_Date - datetime(1970, 1, 1)).total_seconds()

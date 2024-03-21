@@ -1,6 +1,7 @@
 from discordStuff import *
 import re
 from tabulate import tabulate
+import os
 from sheets import *
 from cellOperations import get_player, get_players, generate_stats_message, Update_Cell_Range
 from imageGenerator import imageGenerator, pullImage
@@ -56,7 +57,7 @@ async def setLines(interaction: discord.Interaction):
     if not Lineup_File_Name:
         await interaction.response.send_message('Something went wrong, looking into it.')
     else:
-        await interaction.response.send_message('**Latest Lineup Card**', file=Lineup_File_Name)
+        await interaction.response.send_message('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
 
 
 # endregion set-lineup
@@ -67,15 +68,17 @@ async def setLines(interaction: discord.Interaction):
     description='Gets image of the current lines.',
     guild=GUILD_ID
 )
-async def getLines(interaction: discord.Interaction, member: discord.Member):
+async def getLines(interaction: discord.Interaction):
     Lineup_File_Name = pullImage()
 
     if not Lineup_File_Name:
-        await interaction.response.send_message('Lineup is probably not set yet, or the bot is broken.')
-    elif int(member.id) == 1158794675558285385:
-        await interaction.response.send_message('**Denny\'s Wittle Wineup Card**', file=Lineup_File_Name)
+        await interaction.response.send_message('Something went wrong, looking into it.')
+    elif not os.path.exists(Lineup_File_Name):
+        await interaction.response.send_message('Lineup for the upcoming game not set yet.')
+    elif int(interaction.user.id) == 1158794675558285385:
+        await interaction.response.send_message('**Denny\'s Wittle Wineup Card**', file=discord.File(fp=Lineup_File_Name))
     else:
-        await interaction.response.send_message('**Latest Lineup Card**', file=Lineup_File_Name)
+        await interaction.response.send_message('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
 
 
 # endregion get-lineup-new
