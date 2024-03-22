@@ -41,7 +41,7 @@ async def on_message_edit(_, after):
 
         return [re.findall(r'\d+', str(confirmed)), re.findall(r'\d+', str(maybes))]
 
-    if after.content:
+    if after.content and str(after.author) == 'sesh#1244':
         if int(re.search(r'\d+', str(after.content)).group(0)) == 1218300771318370395:
             return
 
