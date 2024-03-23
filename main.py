@@ -9,8 +9,9 @@ import time
 from googleStuff import *
 from discordStuff import *
 from sheets import *
-from slashCommands import *
+# from slashCommands import *
 from lineBuilder import *
+from firebaseSlashCommands import *
 
 
 @hockeyBot.event
