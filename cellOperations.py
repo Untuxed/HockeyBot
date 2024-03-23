@@ -16,6 +16,15 @@ async def Update_Cell(cell, value):
     ).execute()
 
 
+async def Update_Range(r, value):
+    SHEET.values().update(
+        spreadsheetId=VOODOO_SHEET_ID,
+        range=r,
+        valueInputOption='RAW',
+        body={'values': [[value]]}
+    ).execute()
+
+
 async def Update_Cell_Range(r, values):
     SHEET.values().update(
         spreadsheetId=VOODOO_SHEET_ID,
