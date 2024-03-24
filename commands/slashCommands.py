@@ -1,10 +1,10 @@
-from discordStuff import *
+from services.discordStuff import *
 import re
 from tabulate import tabulate
 import os
-from sheets import *
-from cellOperations import get_player, get_players, generate_stats_message, Update_Cell_Range
-from imageGenerator import imageGenerator, pullImage
+from services.sheets import *
+from services.cellOperations import get_player, get_players, generate_stats_message, Update_Cell_Range
+from utils.imageGenerator import imageGenerator, pullImage
 
 
 # region get-my-stats: pulls your stats from the google sheet

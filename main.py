@@ -6,11 +6,12 @@ import re
 from tabulate import tabulate
 from datetime import datetime, timedelta
 import time
-from googleStuff import *
-from discordStuff import *
-from sheets import *
-from slashCommands import *
-from lineBuilder import *
+from services.googleStuff import *
+from services.discordStuff import *
+from services.sheets import *
+# from slashCommands import *
+from utils.lineBuilder import *
+from commands.firebaseSlashCommands import *
 
 
 @hockeyBot.event

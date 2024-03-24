@@ -1,7 +1,7 @@
 import cv2
 from datetime import datetime
-import cellOperations
-import sheets
+import services.cellOperations as cellOperations
+import services.sheets as sheets
 import random
 
 
