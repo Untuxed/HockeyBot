@@ -6,5 +6,6 @@ from googleapiclient.discovery import build
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
 creds = ServiceAccountCredentials.from_json_keyfile_name(
-    './dev/voodoobot-03f260eef817.json', scope
+# TODO: MAKE THESE ENVIRONMENT VARIABLES
+    '', scope  
 )

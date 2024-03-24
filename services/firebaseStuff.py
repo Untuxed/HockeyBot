@@ -1,7 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
-
-firebase_cred = credentials.Certificate("./dev/voodoobot-firebase-adminsdk-f1enb-2774617ac1.json")
+# TODO: MAKE THESE ENVIRONMENT VARIABLES
+firebase_cred = credentials.Certificate("")
 firebase_admin.initialize_app(firebase_cred)
 
 db = firestore.client()
