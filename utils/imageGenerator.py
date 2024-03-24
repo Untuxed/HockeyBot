@@ -5,6 +5,16 @@ import services.sheets as sheets
 import random
 
 
+# def edit_text_in_file(o_fp, n_fp, old_text, new_text):
+#         # Read the contents of the file
+#         with open(o_fp, 'r') as file:
+#             file_content = file.read()
+#         # Perform the text replacement
+#         modified_content = file_content.replace(old_text, new_text)
+#         with open(o_fp, 'w') as file:
+#             file.write(modified_content)
+#         cairosvg.svg2png(url=o_fp, write_to=n_fp)
+
 # Forwards Pixel Range 860 x 200 to 1950 x 715
 
 def imageGenerator():
