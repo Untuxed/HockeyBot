@@ -1,17 +1,15 @@
-# TODO: Fix usage with polls
-# TODO: change getworksheet to be by name
-# import json
-# import os
+import os
 import re
-from tabulate import tabulate
-from datetime import datetime, timedelta
-import time
+import json
+from tabulate import tabulate #do we still need this?
+from datetime import datetime, timedelta #or this?
+import time #or this?
 from services.googleStuff import *
 from services.discordStuff import *
 from services.sheets import *
-# from slashCommands import *
 from utils.lineBuilder import *
 from commands.firebaseSlashCommands import *
+from dev.devTokens import discord_token_prod, discord_token_dev
 
 
 @hockeyBot.event
@@ -32,5 +30,4 @@ async def on_scheduled_event_user_add(event, user):
         print(user)
 
 
-# token
-hockeyBot.run('')
+hockeyBot.run(discord_token_dev)
