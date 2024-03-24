@@ -1,20 +1,22 @@
 from services.firebaseStuff import db
 
+
 async def checkDuplicatePlayer(collection_ref: str):
     # collection_ref = db.collection(collection_name).document(player_id)
     if collection_ref.get().exists:
         return True
     return False
 
+
 async def get_player_data(first_name: str, last_name: str, number: str):
     # Get the player's data from Firestore
-    playerID = f'{first_name}_{last_name}_{number}' #stored as firstName_lastName_number in firestore
-    player_ref = db.collection('statistics').document(playerID) #get db reference
-    player = player_ref.get() 
+    playerID = f'{first_name}_{last_name}_{number}'  # stored as firstName_lastName_number in firestore
+    player_ref = db.collection('statistics').document(playerID)  # get db reference
+    player = player_ref.get()
 
     if not player.exists:
         return None
-    
+
     player_data = player.to_dict()
 
     # Add these to the player_data dictionary
@@ -23,6 +25,7 @@ async def get_player_data(first_name: str, last_name: str, number: str):
     player_data['number'] = number
     player_data['id'] = player.id
     return player_data
+
 
 def generate_stats_message(player_data: dict):
     # Generate the stats message
