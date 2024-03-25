@@ -19,6 +19,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+./devs/
 
 # Installer logs
 pip-log.txt
@@ -51,3 +52,7 @@ docs/_build/
 
 dev/
 /resources/*.json
+/devs/client_secret_54836503314-qgrjovsbdubpdakqlak8u50o9jdr0nm2.apps.googleusercontent.com.json
+/devs/devTokens.py
+/devs/hockeybot-417500-12b59baa2a04.json
+/devs/hockeybot-417500-firebase-adminsdk-yhk4s-86424273de.json

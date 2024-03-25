@@ -12,6 +12,7 @@ from services.sheets import *
 # from slashCommands import *
 from utils.lineBuilder import *
 from commands.firebaseSlashCommands import *
+from devs.devTokens import discord_token_dev
 
 
 @hockeyBot.event
@@ -33,4 +34,4 @@ async def on_scheduled_event_user_add(event, user):
 
 
 # token
-hockeyBot.run('')
+hockeyBot.run(discord_token_dev)
