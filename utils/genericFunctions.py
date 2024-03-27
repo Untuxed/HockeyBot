@@ -7,7 +7,7 @@ def checkDuplicatePlayer(collection_name: str, player_id: str):
         return True
     return False
 
-async def get_player_data(first_name: str, last_name: str, number: str, season: str):
+async def get_player_data(first_name: str, last_name: str, number: str):
     # Get the player's data from Firestore
     playerID = f'{first_name}_{last_name}_{number}'  # stored as firstName_lastName_number in firestore
     player_ref = db.collection('statistics').document(playerID)  # get db reference
