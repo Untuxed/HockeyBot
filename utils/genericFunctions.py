@@ -1,14 +1,13 @@
 from services.firebaseStuff import db
 
 
-async def checkDuplicatePlayer(collection_ref: str):
-    # collection_ref = db.collection(collection_name).document(player_id)
+def checkDuplicatePlayer(collection_name: str, player_id: str):
+    collection_ref = db.collection(collection_name).document(player_id)
     if collection_ref.get().exists:
         return True
     return False
 
-
-async def get_player_data(first_name: str, last_name: str, number: str):
+async def get_player_data(first_name: str, last_name: str, number: str, season: str):
     # Get the player's data from Firestore
     playerID = f'{first_name}_{last_name}_{number}'  # stored as firstName_lastName_number in firestore
     player_ref = db.collection('statistics').document(playerID)  # get db reference
