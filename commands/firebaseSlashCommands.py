@@ -6,9 +6,8 @@ from utils.imageGenerator import imageGenerator, pullImage
 from services.firebaseStuff import *
 from utils.genericFunctions import checkDuplicatePlayer, get_player_data, generate_stats_message
 
-db = firestore.client()
-
 # region getmystats or just /mystats ????????
+# TODO: Add a check for if player exists in the stats document, currently just breaks and throws a NoneType error
 @tree.command(name='getmystats', description='Gets your stat card', guild=GUILD_ID)
 async def getMyStats(interaction: discord.Interaction):
     # grab name and number from the user's nickname
@@ -151,54 +150,44 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
 
 # endregion update-stats
 
-# region addplayer TODO: clean up this code
+# region addplayer - adds a player to the roster and stats db
 @tree.command(name='addplayer', description='Adds a Player to the Firestore db', guild=GUILD_ID)
 async def addPlayer(interaction: discord.Interaction, member: discord.Member):
-    # Check if the user invoking the command has the 'captain' or 'admin' role
-    if not any(role.name in ['captain', 'admin'] for role in interaction.user.roles):
-        await interaction.response.send_message('You do not have permission to use this command.')
-        return
-    # Extract first name, last name, and number from the member's nickname
+    await interaction.response.defer()
+
+    # Extract first name, last name, and number from the nickname
     match = re.match(r'(\w+)\s+(\w+)\s+\[(\d+)\]', member.nick)
     if not match:
-        await interaction.response.send_message('Invalid nickname format. Nickname should be in the format "{firstName} {lastName} [{number}]"')
+        await interaction.response.send_message('Invalid nickname format.')
         return
-
     first_name, last_name, number = match.groups()
     playerID = f'{first_name}_{last_name}_{number}'
 
-    # Determine the player's status, position, and captain status based on their roles
+    # extract the roles from the member
     status = 'substitute' if any(role.name == 'Substitute' for role in member.roles) else 'rostered'
     is_captain = any(role.name == 'captain' for role in member.roles)
     valid_positions = ['center', 'forward', 'defenseman', 'goalie']
     position = next((role.name for role in member.roles if role.name in valid_positions), None)
-    handedness = 'right' if any(role.name == 'righty' for role in member.roles) else 'left'
-    if not position:
-        await interaction.response.send_message(f'Invalid position. Valid positions are: {", ".join(valid_positions)}')
-        return
-    
-    roster_ref = db.collection('roster').document(playerID)
-    if not await checkDuplicatePlayer(roster_ref):
-        return
+    handedness = next((role.name[:-1] for role in member.roles if role.name in ['righty', 'lefty']), 'unknown')
 
-    # Add player to the roster
-    roster_ref.set({
+    # set player info from roles
+    player_data = {
         'discordID': str(member.id),
         'number': number,
-        'first-name': first_name,
-        'last-name': last_name,
+        'first_name': first_name,
+        'last_name': last_name,
         'position': position,
-        'status': status,
-        'is-captain': is_captain,
+        'stats': status,
+        'is_captain': is_captain,
         'handedness': handedness
-    })
+    }
 
     # Check if player already exists in the statistics
     statistics_ref = db.collection('statistics').document(playerID)
-    if statistics_ref.get().exists:
-        await interaction.response.send_message('Player with that name and number already exists in the statistics.') #should we remove all these "confirmation" messages?
+    if checkDuplicatePlayer('statistics', playerID):
+        await interaction.followup.send('Player with that name and number already exists in the statistics.')
         return
-
+        
     # Add player to the statistics
     statistics_ref.set({
         'gp': 0,
@@ -209,10 +198,16 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member):
         'pims': 0
     })
 
-    await interaction.response.send_message('Player added successfully.')
+    try:
+        roster_ref = db.collection('roster').document(playerID)
+        roster_ref.set(player_data)
+        await interaction.followup.send('Player added successfully.')
+    except Exception as e:
+        await interaction.followup.send(f'An error occurred: {e}')
+        
 # endregion addplayer
     
-# region manual-add-player
+# region manual-add-player #TODO: refactor this, probably broken
 @tree.command(name='add-normie-player', description='Manually adds a Player to the Firestore db', guild=GUILD_ID)
 async def addNormiePlayer(interaction: discord.Interaction, 
                           first_name: str, 
