@@ -8,8 +8,13 @@ from utils.genericFunctions import get_season_and_game_id
 @hockeyBot.event
 async def on_message(message):
     if message.author.name == 'sesh':
+        # Catch for "event is starting now" messages, can remove once we convert to firebase entirely
+        for embed in message.embeds:
+            if embed.title.endswith('is starting now!'):
+                return
         season_id, doc_id = get_season_and_game_id(message)
-        db.collection(season_id).document('games').collection(doc_id).document('RSVPs').set({})
+        if season_id and doc_id:
+            db.collection(season_id).document('games').collection(doc_id).document('RSVPs').set({})  
 #endregion
         
 #region get RSVPs on message edit (RSVP)

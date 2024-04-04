@@ -52,7 +52,7 @@ def get_season_and_game_id(message):
         match = re.search(r':calendar_spiral:  \*\*Game (\d+) vs\. (.+?)\*\*', game_title)
         if match:
             game_number = match.group(1)
-            opponent = match.group(2)
+            opponent = match.group(2).replace(' ', '_')
         for field in embed.fields:
             if field.name == 'Time':
                 match = re.search(r'<t:(\d+):F>', field.value)
