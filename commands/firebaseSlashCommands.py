@@ -12,11 +12,13 @@ from utils.genericFunctions import checkDuplicatePlayer, get_player_data, genera
 async def getMyStats(interaction: discord.Interaction):
     # grab name and number from the user's nickname
     first_name, last_name, number = interaction.user.nick.replace('[', '').replace(']', '').split(' ')
-    
+
     player = await get_player_data(first_name, last_name, number)
     stats_message = generate_stats_message(player)
 
     await interaction.response.send_message(stats_message)
+
+
 # endregion getmystats
 
 # region getplayerstats  or just /playerstats ????????
@@ -35,6 +37,7 @@ async def getPlayerStats(interaction: discord.Interaction, member: discord.Membe
     except ValueError:
         # If the player wasn't found, send an error message
         await interaction.response.send_message('Player does not exist.')
+
 
 # endregion getplayerstats
 
@@ -74,7 +77,8 @@ async def getLines(interaction: discord.Interaction):
     elif not os.path.exists(Lineup_File_Name):
         await interaction.response.send_message('Lineup for the upcoming game not set yet.')
     elif int(interaction.user.id) == 1158794675558285385:
-        await interaction.response.send_message('**Denny\'s Wittle Wineup Card**', file=discord.File(fp=Dennis_Lineup_File_Name))
+        await interaction.response.send_message('**Denny\'s Wittle Wineup Card**',
+                                                file=discord.File(fp=Dennis_Lineup_File_Name))
     else:
         await interaction.response.send_message('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
 
@@ -209,13 +213,13 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member):
     
 # region manual-add-player #TODO: refactor this, probably broken
 @tree.command(name='add-normie-player', description='Manually adds a Player to the Firestore db', guild=GUILD_ID)
-async def addNormiePlayer(interaction: discord.Interaction, 
-                          first_name: str, 
-                          last_name: str, 
-                          number: str, 
-                          position: str, 
-                          status: str, 
-                          is_captain: bool, 
+async def addNormiePlayer(interaction: discord.Interaction,
+                          first_name: str,
+                          last_name: str,
+                          number: str,
+                          position: str,
+                          status: str,
+                          is_captain: bool,
                           handedness: str):
     normieID = f'{first_name}_{last_name}_{number}'
     roster_ref = db.collection('roster').document(normieID)
@@ -250,6 +254,8 @@ async def addNormiePlayer(interaction: discord.Interaction,
     })
 
     await interaction.response.send_message('Player added successfully.')
+
+
 # endregion manual-add-player
 
 # region avatar: goofy code

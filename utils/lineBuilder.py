@@ -95,7 +95,7 @@
 #                 Maybe_Player_Range = 'RSVP Sheet!' + colLetter + '21:' + colLetter + str(len(21 + maybePlayers))
 
 #                 Scratched_Player_Values = []
-#                 Scratched_Player_Range = 'RSVP Sheet!' + colLetter + '37:' + colLetter + str(len(37 + maybePlayers))
+#                 Scratched_Player_Range = 'RSVP Sheet!' + colLetter + '37:' + colLetter + str(len(37 + scratchedPlayers))
 
 #                 for i, id in enumerate(confirmedPlayers):
 #                     if id in existing_IDs:
@@ -146,7 +146,7 @@
 #         Maybe_Player_Range = 'RSVP Sheet!' + colLetter + '21:' + colLetter + str(len(21 + maybePlayers))
 
 #         Scratched_Player_Values = []
-#         Scratched_Player_Range = 'RSVP Sheet!' + colLetter + '37:' + colLetter + str(len(37 + maybePlayers))
+#         Scratched_Player_Range = 'RSVP Sheet!' + colLetter + '37:' + colLetter + str(len(37 + scratchedPlayers))
 
 #         for i, id in enumerate(confirmedPlayers):
 #             if id in existing_IDs:
