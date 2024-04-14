@@ -61,6 +61,6 @@ def get_season_and_game_id(message):
                 game_time = datetime.utcfromtimestamp(timestamp) - timedelta(hours=4)
                 formatted_time = game_time.strftime('%m-%d-%Y')
     
-    doc_id = f'game_{game_number}_vs_{opponent}_{formatted_time}'
+    doc_id = f'{formatted_time}'
     return season_id, doc_id
 #endregion
