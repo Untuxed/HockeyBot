@@ -277,10 +277,17 @@ async def import_rsvps(interaction: discord.Interaction, game_id: str):
         # Define the ranges
         attendees_range = 'Lineup!E3:E15'
         maybes_range = 'Lineup!F3:F15'
+        nos_range = 'Lineup!G3:G15'
+
+        # Clear the cells in the ranges
+        SHEET.values().clear(spreadsheetId=VOODOO_SHEET_ID, range=attendees_range).execute()
+        SHEET.values().clear(spreadsheetId=VOODOO_SHEET_ID, range=maybes_range).execute()
+        SHEET.values().clear(spreadsheetId=VOODOO_SHEET_ID, range=nos_range).execute()
 
         # Write the RSVPs to the Google Sheet
         SHEET.values().update(spreadsheetId=VOODOO_SHEET_ID, range=attendees_range, valueInputOption='USER_ENTERED', body={'values': [[name] for name in attendees]}).execute()
         SHEET.values().update(spreadsheetId=VOODOO_SHEET_ID, range=maybes_range, valueInputOption='USER_ENTERED', body={'values': [[name] for name in maybes]}).execute()
+        SHEET.values().update(spreadsheetId=VOODOO_SHEET_ID, range=nos_range, valueInputOption='USER_ENTERED', body={'values': [[name] for name in nos]}).execute()
 
         await interaction.response.send_message(f"RSVPs for game {game_id} have been imported to the Google Sheet.")
     else:
