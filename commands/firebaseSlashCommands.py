@@ -16,7 +16,7 @@ async def getMyStats(interaction: discord.Interaction):
     player = await get_player_data(first_name, last_name, number)
     stats_message = generate_stats_message(player)
 
-    await interaction.response.send_message(stats_message)
+    await interaction.response.send_message(stats_message, ephemeral=True)
 
 
 # endregion getmystats
@@ -32,11 +32,11 @@ async def getPlayerStats(interaction: discord.Interaction, member: discord.Membe
         player = await get_player_data(first_name, last_name, number)
         # If the player was found, send their stats
         stats_message = generate_stats_message(player)
-        await interaction.response.send_message(stats_message)
+        await interaction.response.send_message(stats_message, ephemeral=True)
 
     except ValueError:
         # If the player wasn't found, send an error message
-        await interaction.response.send_message('Player does not exist.')
+        await interaction.response.send_message('Player does not exist.', ephemeral=True)
 
 
 # endregion getplayerstats
