@@ -3,7 +3,7 @@ from datetime import datetime
 import services.cellOperations as cellOperations
 import services.sheets as sheets
 import random
-import cairosvg
+# import cairosvg
 
 
 def imageGenerator():
@@ -32,7 +32,7 @@ def imageGenerator():
         with open(temp_SVG_FilePath, 'w') as file:
             file.write(SVG_Game_Info)
 
-        cairosvg.svg2png(url=temp_SVG_FilePath, write_to=newImageFilePath)
+        # cairosvg.svg2png(url=temp_SVG_FilePath, write_to=newImageFilePath)
 
     def addPlayerLineup(baseImage, playerText, x_anchor, y_location, Font_Color=(0, 0, 0)):
         Font_Size = 1.5
