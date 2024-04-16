@@ -13,11 +13,12 @@ async def event_initialization(schedule_Channel):
     async for message in schedule_Channel.history(limit=10):
         messages.append(message)
 
-    embedded_data = messages[0].embeds[0]
-    gameTime = int(re.search(r'\d+', str(embedded_data.fields[0].value)).group())
+    embedded_data = messages[0].embeds
+    if embedded_data:
+        gameTime = int(re.search(r'\d+', str(embedded_data[0].fields[0].value)).group())
 
-    legibleDateTime = datetime.datetime.utcfromtimestamp(gameTime) - timedelta(hours=4)
+        legibleDateTime = datetime.datetime.utcfromtimestamp(gameTime) - timedelta(hours=4)
 
-    print(legibleDateTime.date() < today)
+        print(legibleDateTime.date() < today)
     return
 # endregion
