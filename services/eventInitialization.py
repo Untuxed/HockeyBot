@@ -1,16 +1,23 @@
-from datetime import date
+from datetime import date, timedelta
+import datetime
 import discord
 from utils.genericFunctions import get_season_and_game_id
+import re
 
 
 # region initialization function
-def event_initialization(GuildID):
+async def event_initialization(schedule_Channel):
     today = date.today()
 
-    schedule_Channel_ID = discord.utils.get(get_guild.channels, name='dev-schedule')
+    messages = []
+    async for message in schedule_Channel.history(limit=10):
+        messages.append(message)
 
-    print(schedule_Channel_ID)
+    embedded_data = messages[0].embeds[0]
+    gameTime = int(re.search(r'\d+', str(embedded_data.fields[0].value)).group())
 
-    # s_ID, event_date = get_season_and_game_id()
+    legibleDateTime = datetime.datetime.utcfromtimestamp(gameTime) - timedelta(hours=4)
 
+    print(legibleDateTime.date() < today)
+    return
 # endregion
