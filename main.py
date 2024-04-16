@@ -1,4 +1,9 @@
 from commands.firebaseSlashCommands import *
+from services.googleStuff import *
+from services.discordStuff import *
+from services.sheets import *
+from utils.lineBuilder import *
+from utils.lineBuilderv2 import *
 from services.eventInitialization import event_initialization
 from dev.devTokens import discord_token_prod, discord_token_dev
 

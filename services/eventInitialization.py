@@ -15,7 +15,7 @@ async def event_initialization(schedule_Channel):
 
     embedded_data = messages[0].embeds
     if embedded_data:
-        gameTime = int(re.search(r'\d+', str(embedded_data[0].fields[0].value)).group())
+        gameTime = int(re.search(r'\d+', str(embedded_data.fields[0].value)).group())
 
         legibleDateTime = datetime.datetime.utcfromtimestamp(gameTime) - timedelta(hours=4)
 
