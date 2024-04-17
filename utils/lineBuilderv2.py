@@ -37,14 +37,18 @@ async def on_message(message):
 async def on_raw_message_edit(payload):
     if payload.data['author']['username'] == 'sesh':
 
+        ID = int(payload.data['id'])
+
+        message = await discord.utils.get(hockeyBot.guilds[1].text_channels, name='dev-schedule').fetch_message(ID)
+
         #get season and document id's from the edited message
-        season_id, doc_id = get_season_and_game_id(payload)
+        season_id, doc_id = get_season_and_game_id(message)
 
         #get the RSVP document from db
         rsvp_doc = db.collection(season_id).document('games').collection(doc_id).document('RSVPs').get()
 
         #instantiate categories so it doesn't get mad
-        for embed in payload.embeds:
+        for embed in message.embeds:
             attendees = []
             maybes = []
             nos = []
@@ -53,13 +57,13 @@ async def on_raw_message_edit(payload):
         for field in embed.fields:
             if '✅ Attendees' in field.name:
                 attendee_ids = re.findall(r'<@(\d+)>', field.value)
-                attendees = [payload.guild.get_member(int(id)).nick for id in attendee_ids]
+                attendees = [message.guild.get_member(int(id)).nick for id in attendee_ids]
             elif '🤷 Maybe' in field.name:
                 maybe_ids = re.findall(r'<@(\d+)>', field.value)
-                maybes = [payload.guild.get_member(int(id)).nick for id in maybe_ids]
+                maybes = [message.guild.get_member(int(id)).nick for id in maybe_ids]
             elif '❌ No' in field.name:
                 no_ids = re.findall(r'<@(\d+)>', field.value)
-                nos = [payload.guild.get_member(int(id)).nick for id in no_ids]
+                nos = [message.guild.get_member(int(id)).nick for id in no_ids]
 
             # Update the document in Firebase
             db.collection(season_id).document('games').collection(doc_id).document('RSVPs').update({
