@@ -34,17 +34,17 @@ async def on_message(message):
         
 #region get RSVPs on message edit (RSVP)
 @hockeyBot.event
-async def on_message_edit(before, after):
-    if before.author.name == 'sesh':
+async def on_raw_message_edit(payload):
+    if payload.data['author']['username'] == 'sesh':
 
         #get season and document id's from the edited message
-        season_id, doc_id = get_season_and_game_id(after)
+        season_id, doc_id = get_season_and_game_id(payload)
 
         #get the RSVP document from db
         rsvp_doc = db.collection(season_id).document('games').collection(doc_id).document('RSVPs').get()
 
         #instantiate categories so it doesn't get mad
-        for embed in after.embeds:
+        for embed in payload.embeds:
             attendees = []
             maybes = []
             nos = []
@@ -53,13 +53,13 @@ async def on_message_edit(before, after):
         for field in embed.fields:
             if '✅ Attendees' in field.name:
                 attendee_ids = re.findall(r'<@(\d+)>', field.value)
-                attendees = [after.guild.get_member(int(id)).nick for id in attendee_ids]
+                attendees = [payload.guild.get_member(int(id)).nick for id in attendee_ids]
             elif '🤷 Maybe' in field.name:
                 maybe_ids = re.findall(r'<@(\d+)>', field.value)
-                maybes = [after.guild.get_member(int(id)).nick for id in maybe_ids]
+                maybes = [payload.guild.get_member(int(id)).nick for id in maybe_ids]
             elif '❌ No' in field.name:
                 no_ids = re.findall(r'<@(\d+)>', field.value)
-                nos = [after.guild.get_member(int(id)).nick for id in no_ids]
+                nos = [payload.guild.get_member(int(id)).nick for id in no_ids]
 
             # Update the document in Firebase
             db.collection(season_id).document('games').collection(doc_id).document('RSVPs').update({
@@ -68,3 +68,4 @@ async def on_message_edit(before, after):
                 'nos': nos
             })
 #endregion
+
