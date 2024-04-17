@@ -7,6 +7,7 @@ from services.firebaseStuff import *
 from utils.genericFunctions import checkDuplicatePlayer, get_player_data, generate_stats_message
 import gspread
 from services.sheets import *
+from services.cellOperations import Range_Clear, get_players, Update_Cell_Range
 
 # region getmystats or just /mystats ????????
 # TODO: Add a check for if player exists in the stats document, currently just breaks and throws a NoneType error
@@ -280,9 +281,7 @@ async def import_rsvps(interaction: discord.Interaction, game_id: str):
         nos_range = 'Lineup!G3:G15'
 
         # Clear the cells in the ranges
-        SHEET.values().clear(spreadsheetId=VOODOO_SHEET_ID, range=attendees_range).execute()
-        SHEET.values().clear(spreadsheetId=VOODOO_SHEET_ID, range=maybes_range).execute()
-        SHEET.values().clear(spreadsheetId=VOODOO_SHEET_ID, range=nos_range).execute()
+        Range_Clear([attendees_range, maybes_range, nos_range])
 
         # Write the RSVPs to the Google Sheet
         SHEET.values().update(spreadsheetId=VOODOO_SHEET_ID, range=attendees_range, valueInputOption='USER_ENTERED', body={'values': [[name] for name in attendees]}).execute()
