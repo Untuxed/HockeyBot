@@ -35,11 +35,12 @@ async def on_message(message):
 #region get RSVPs on message edit (RSVP)
 @hockeyBot.event
 async def on_raw_message_edit(payload):
-    if payload.data['author']['username'] == 'sesh':
+    if 'author' in payload.data and payload.data['author']['username'] == 'sesh':
 
-        ID = int(payload.data['id'])
+        messageID = int(payload.data['id'])
+        channelID = int(payload.data['channel_id'])
 
-        message = await discord.utils.get(hockeyBot.guilds[1].text_channels, name='dev-schedule').fetch_message(ID)
+        message = await hockeyBot.get_channel(channelID).fetch_message(messageID)
 
         #get season and document id's from the edited message
         season_id, doc_id = get_season_and_game_id(message)
