@@ -55,7 +55,7 @@ async def on_raw_message_edit(payload):
 
         if not rsvp_doc.exists:
             db.collection(season_id).document('games').collection(doc_id).document('RSVPs').set({})
-            db.collection(season_id).document('games').collection(doc_id).document('discordMessageID').set({ID})
+            db.collection(season_id).document('games').collection(doc_id).document('discordMessageID').set({messageID})
 
         # instantiate categories so it doesn't get mad
         for embed in message.embeds:
