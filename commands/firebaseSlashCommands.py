@@ -329,7 +329,7 @@ async def get_game_time(interaction: discord.Interaction):
             continue  # Skip this document if its id cannot be parsed as a date
 
         # Check if the game date is in the future
-        if game_date > today:
+        if game_date >= today:
             # Get the game info
             game_info = game.document('game-info').get()
 

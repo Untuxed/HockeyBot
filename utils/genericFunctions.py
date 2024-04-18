@@ -49,18 +49,18 @@ def get_season_and_game_id(message):
     #get game information from embed to use as document id
     if message.embeds:
         game_title = message.embeds[0].title
-        match = re.search(r':calendar_spiral:  \*\*Game (\d+) vs\. (.+?)\*\*', game_title)
+        match = re.search(r':calendar_spiral: (.+)', game_title)
         time_field = message.embeds[0].fields[0]
         if match:
-            game_number = match.group(1)
-            opponent = match.group(2).replace(' ', '_')
+            opponent = match.group(1)
         if time_field.name == 'Time':
             match = re.search(r'<t:(\d+):F>', time_field.value)
             if match:
                 timestamp = int(match.group(1))
                 game_time = datetime.utcfromtimestamp(timestamp) - timedelta(hours=4)
                 formatted_time = game_time.strftime('%m-%d-%Y')
+                gametime = game_time.strftime('%H:%M')
     
-    doc_id = f'{formatted_time}'
-    return season_id, doc_id
+    game_id = f'{formatted_time}'
+    return season_id, game_id, gametime, opponent
 #endregion
