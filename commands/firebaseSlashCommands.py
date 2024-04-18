@@ -9,6 +9,7 @@ import gspread
 from services.sheets import *
 from services.cellOperations import Range_Clear, get_players, Update_Cell_Range
 
+
 # region getmystats or just /mystats ????????
 # TODO: Add a check for if player exists in the stats document, currently just breaks and throws a NoneType error
 @tree.command(name='getmystats', description='Gets your stat card', guild=GUILD_ID)
@@ -76,14 +77,15 @@ async def getLines(interaction: discord.Interaction):
     Lineup_File_Name, Dennis_Lineup_File_Name = pullImage()
 
     if not Lineup_File_Name:
-        await interaction.response.send_message('Something went wrong, looking into it.')
+        await interaction.response.send_message('Something went wrong, looking into it.', ephemeral=True)
     elif not os.path.exists(Lineup_File_Name):
-        await interaction.response.send_message('Lineup for the upcoming game not set yet.')
+        await interaction.response.send_message('Lineup for the upcoming game not set yet.', ephemeral=True)
     elif int(interaction.user.id) == 1158794675558285385:
         await interaction.response.send_message('**Denny\'s Wittle Wineup Card**',
-                                                file=discord.File(fp=Dennis_Lineup_File_Name))
+                                                file=discord.File(fp=Dennis_Lineup_File_Name), ephemeral=True)
     else:
-        await interaction.response.send_message('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
+        await interaction.response.send_message('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name),
+                                                ephemeral=True)
 
 
 # endregion get-lineup-new
@@ -194,7 +196,7 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member):
     if checkDuplicatePlayer('statistics', playerID):
         await interaction.followup.send('Player with that name and number already exists in the statistics.')
         return
-        
+
     # Add player to the statistics
     statistics_ref.set({
         'gp': 0,
@@ -211,9 +213,10 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member):
         await interaction.followup.send('Player added successfully.')
     except Exception as e:
         await interaction.followup.send(f'An error occurred: {e}')
-        
+
+
 # endregion addplayer
-    
+
 # region manual-add-player #TODO: refactor this, probably broken
 @tree.command(name='add-normie-player', description='Manually adds a Player to the Firestore db', guild=GUILD_ID)
 async def addNormiePlayer(interaction: discord.Interaction,
@@ -257,16 +260,18 @@ async def addNormiePlayer(interaction: discord.Interaction,
     })
 
     await interaction.response.send_message('Player added successfully.')
+
+
 # endregion manual-add-player
 
-#region getrsvps
+# region getrsvps
 
 @tree.command(name='importrsvps', description='Import RSVPs for a game', guild=GUILD_ID)
 async def import_rsvps(interaction: discord.Interaction, game_id: str):
     # Define reference to correct db collection using the game id and season id
     season_id = interaction.channel.category.name.lower().replace(' ', '_')
     rsvp_ref = db.collection(season_id).document('games').collection(game_id).document('RSVPs')
-    
+
     # Get the RSVP'd players for each category attendees, nos, and maybes
     rsvp_doc = rsvp_ref.get()
     if rsvp_doc.exists:
@@ -284,17 +289,19 @@ async def import_rsvps(interaction: discord.Interaction, game_id: str):
         Range_Clear([attendees_range, maybes_range, nos_range])
 
         # Write the RSVPs to the Google Sheet
-        SHEET.values().update(spreadsheetId=VOODOO_SHEET_ID, range=attendees_range, valueInputOption='USER_ENTERED', body={'values': [[name] for name in attendees]}).execute()
-        SHEET.values().update(spreadsheetId=VOODOO_SHEET_ID, range=maybes_range, valueInputOption='USER_ENTERED', body={'values': [[name] for name in maybes]}).execute()
-        SHEET.values().update(spreadsheetId=VOODOO_SHEET_ID, range=nos_range, valueInputOption='USER_ENTERED', body={'values': [[name] for name in nos]}).execute()
+        SHEET.values().update(spreadsheetId=VOODOO_SHEET_ID, range=attendees_range, valueInputOption='USER_ENTERED',
+                              body={'values': [[name] for name in attendees]}).execute()
+        SHEET.values().update(spreadsheetId=VOODOO_SHEET_ID, range=maybes_range, valueInputOption='USER_ENTERED',
+                              body={'values': [[name] for name in maybes]}).execute()
+        SHEET.values().update(spreadsheetId=VOODOO_SHEET_ID, range=nos_range, valueInputOption='USER_ENTERED',
+                              body={'values': [[name] for name in nos]}).execute()
 
         await interaction.response.send_message(f"RSVPs for game {game_id} have been imported to the Google Sheet.")
     else:
         await interaction.response.send_message(f"No RSVPs found for game {game_id}.")
 
 
-
-#endregion getrsvps
+# endregion getrsvps
 
 # region avatar: goofy code
 @tree.command(name="avatar", description="Get user avatar", guild=GUILD_ID)

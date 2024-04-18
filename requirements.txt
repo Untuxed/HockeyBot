@@ -1,0 +1,6 @@
+opencv-python
+tabulate
+gspread
+oauth2client
+google-api-python-client
+discord.py
