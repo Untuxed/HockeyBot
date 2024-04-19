@@ -5,36 +5,34 @@ import services.cellOperations as cellOperations
 import services.sheets as sheets
 import random
 from services.firebaseStuff import *
-# import cairosvg
+import cairosvg
 
 
 def imageGenerator(interaction):
     def numberLookup(playerName):
         if playerName:
-            if playerName in rosteredPlayers['first-name']:
-                index = existing_names.index(playerName)
-                Player_Number = existing_players[index][0]
-                return f'{Player_Number} - ' + playerName
-            else:
-                return '## - ' + playerName
+            for i, playerData in enumerate(rosteredPlayers):
+                if playerName in playerData:
+                    playerNumber = rosteredPlayers[i][0]
+                    rosteredPlayers.remove(playerData)
+                    return f'{playerNumber} - ' + playerName
+                else:
+                    return '## - ' + playerName
         else:
             return ' '
 
     def randomTextColor():
         return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
 
-    def addGameInfo(baseSVGFilePath, newImageFilePath, opponentName, gameTime):
+    def addGameInfo(baseSVGFile, newImageFilePath, opponentName, gameTime):
         temp_SVG_FilePath = './../resources/images/temp.svg'
 
-        with open(baseSVGFilePath, 'r') as file:
-            base_SVG_Data = file.read()
-
-        SVG_Game_Info = base_SVG_Data.replace('### REPLACE ME ###', opponentName + gameTime)
+        SVG_Game_Info = baseSVGFile.replace('### REPLACE ME ###', opponentName + gameTime)
 
         with open(temp_SVG_FilePath, 'w') as file:
             file.write(SVG_Game_Info)
 
-        # cairosvg.svg2png(url=temp_SVG_FilePath, write_to=newImageFilePath)
+        cairosvg.svg2png(url=temp_SVG_FilePath, write_to=newImageFilePath)
 
     def addPlayerLineup(baseImage, playerText, x_anchor, y_location, Font_Color=(0, 0, 0)):
         Font_Size = 1.5
@@ -62,35 +60,33 @@ def imageGenerator(interaction):
 
     skaters, goalies = get_roster(interaction)
 
-    # if next_game_time and next_game_date:
-    #     addGameInfo('./../resources/images/BaseLineupCard.svg',
-    #                 './../resources/images/BaseLineupCard.png',
-    #                 opponent,
-    #                 next_game_time
-    #                 )
-    #
-    #     addGameInfo('./../resources/images/Dennis_BaseLineupCard.svg',
-    #                 './../resources/images/Dennis_BaseLineupCard.png',
-    #                 opponent,
-    #                 next_game_time
-    #                 )
-    # else:
-    #     return
+    if next_game_time and next_game_date:
+        addGameInfo(Base_Lineup_Image,
+                    'LineupImages/BaseLineupCard.png',
+                    opponent,
+                    next_game_time
+                    )
+
+        addGameInfo(Dennis_Base_Lineup_Image,
+                    'LineupImages/Dennis_BaseLineupCard.png',
+                    opponent,
+                    next_game_time
+                    )
+    else:
+        return
 
     rosteredPlayers = []
 
     for player in skaters:
         playerDictionary = player.to_dict()
-        print(playerDictionary)
-        rosteredPlayers.append([playerDictionary['number'], playerDictionary['first_name'], playerDictionary['last-name']])
-        print([playerDictionary['number'], playerDictionary['first-name'], playerDictionary['last-name']])
+        rosteredPlayers.append([int(playerDictionary['number']), playerDictionary['first_name'], playerDictionary['last_name']])
+
+    print(rosteredPlayers)
 
     Forwards = [
         [
             name.split()[0] for name in sublist
         ] for sublist in cellOperations.Get_Cell_Range(sheets.FORWARDS_LINEUP_RANGE)]
-
-    print(Forwards)
 
     if not Forwards:
         Forwards = [

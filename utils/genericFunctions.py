@@ -57,7 +57,7 @@ def get_season_and_game_id(message):
             match = re.search(r'<t:(\d+):F>', time_field.value)
             if match:
                 timestamp = int(match.group(1))
-                game_time = datetime.utcfromtimestamp(timestamp) - datetime.timedelta(hours=4)
+                game_time = datetime.datetime.utcfromtimestamp(timestamp) - datetime.timedelta(hours=4)
                 formatted_time = game_time.strftime('%m-%d-%Y')
                 gametime = game_time.strftime('%H:%M')
 
@@ -88,7 +88,7 @@ def get_game_date(interaction):
             game_date = datetime.datetime.strptime(game_date_str, '%m-%d-%Y').date()
         except ValueError:
             continue  # Skip this document if its id cannot be parsed as a date
-
+        print(today, game_date)
         # Check if the game date is in the future
         if game_date >= today:
             # Get the game info
