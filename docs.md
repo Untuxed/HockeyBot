@@ -9,7 +9,7 @@
 - Usage: /getplayerstats [discord.memeber: discord user]
 
 ## /getlines
-- Description: Sends the lineup for the next game as a private message. This command only works if the lineup has been previously set using the captain command '/setlines.' Otherwise, it responds with an error message.
+- Description: Sends the lineup for the next game as a private message. This command only works if the lineup has been previously set using the captain command [setlines](##setlines). Otherwise, it responds with an error message.
 - Usage: /getlines
 
 # Captain Commands
