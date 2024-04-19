@@ -22,5 +22,5 @@
 - Usage: /updatestats [discord.member: discord user] [int: goals] [int: assists] [int: pims] [int: gp]
 
 ## /addplayer
-- Description: Addes a player to the Firebase roster and statistical database. It uses the category name as the season ID. Currently, it stores the player's discordID, number, first name, last name, position, stats, if they are a captain, and their handedness. This command also separates the skaters and the goalies into separate Firebase document pages. If adding the player is successful it will return a success message and if it fails the bot will send an error message.
+- Description: Adds a player to the Firebase roster and statistical database. It uses the category name as the season ID. The bot reads the player's Discord ID, number, first name, last name, position, stats, if they are a captain, and their handedness from tags on discord. This command also separates the skaters and the goalies into separate Firebase document pages. If adding the player is successful, it will return a success message; if it fails, the bot will send an error message.
 - Usage: /addplayer [discord.member: discord user]
