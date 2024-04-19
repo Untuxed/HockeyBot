@@ -9,11 +9,11 @@
 - Usage: /getplayerstats [discord.memeber: discord user]
 
 ## /getlines
-- Description: Sends the lineup for the next game as a private message. This command only works if the lineup has been previously set using the captain command [setlines](setlines). Otherwise, it responds with an error message.
+- Description: Sends the lineup for the next game as a private message. This command only works if the lineup has been previously set using the captain command '/setlines'. Otherwise, it responds with an error message.
 - Usage: /getlines
 
 # Captain Commands
-## /setlines <a name="setlines"></a>
+## /setlines 
 - Description: Retrieves and displays information about the next scheduled game based on data from a Google Sheet. Additionally, it generates a custom lineup image based on the number of lines present in the Google Sheet. In the event that there are no upcoming games or the bot encounters an issue while generating the image, it will respond with an error message.
 - Usage: /setlines
 
