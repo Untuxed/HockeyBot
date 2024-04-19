@@ -4,7 +4,7 @@ from tabulate import tabulate
 import os
 from utils.imageGenerator import imageGenerator, pullImage
 from services.firebaseStuff import *
-from utils.genericFunctions import checkDuplicatePlayer, get_player_data, generate_stats_message, get_game_date
+from utils.genericFunctions import checkDuplicatePlayer, get_player_data, generate_stats_message, get_game_date, get_season_and_game_id
 import gspread
 from services.sheets import *
 from services.cellOperations import Range_Clear, get_players, Update_Cell_Range
@@ -91,38 +91,6 @@ async def getLines(interaction: discord.Interaction):
 
 # endregion get-lineup-new
 
-# region get-lineup-old: pulls the current lines from the google sheet
-@tree.command(name='get-lines-old', description='(Depreciated) Gets the lineup from the google sheet', guild=GUILD_ID)
-async def Lines(interaction: discord.Interaction):
-    def generate_lineup_card(f, d, g):
-        header = [["------", "Lineup Card", "------"]]
-        underHeader = [["------", "-" * len(header[0][1]), "------"]]
-        forwards_header = [["", "Forwards", ""], ["LW", "C", "RW"]]
-        spacer = [
-            ["------", "-" * len(header[0][1]), "------"]
-        ]
-        defense_header = [["", "Defense", ""], ["LD", "", "RD"]]
-        goalie_header = [["", "Goalie", ""]]
-        lineup_card = \
-            header + underHeader + forwards_header + spacer + f + spacer + defense_header + spacer + d + spacer + \
-            goalie_header + g
-        return tabulate(lineup_card, stralign="center")
-
-    forwardsRange = 'A5:C8'
-    defenseRange = 'A11:C13'
-    goalieRange = 'A16:C16'
-
-    forwards = sheet.get(forwardsRange)
-    defense = sheet.get(defenseRange)
-    goalie = sheet.get(goalieRange)
-
-    lineup = generate_lineup_card(forwards, defense, goalie)
-
-    await interaction.response.send_message('```' + lineup + '```')
-
-
-# endregion get-lineup-old
-
 # region update-stats - adds stats from a single game to the stats sheet
 @tree.command(name='update-stats', description='Increment a players stats', guild=GUILD_ID)
 async def updateStats(interaction: discord.Interaction, member: discord.Member, goals: int = 0, assists: int = 0,
@@ -164,20 +132,27 @@ async def updateStats(interaction: discord.Interaction, member: discord.Member, 
 @tree.command(name='addplayer', description='Adds a Player to the Firestore db', guild=GUILD_ID)
 async def addPlayer(interaction: discord.Interaction, member: discord.Member):
     await interaction.response.defer()
+    category_name = interaction.channel.category.name  # season_id gets created from category name in discord
+    season_id = re.sub(r'\s+', '_', category_name).lower()
 
     # Extract first name, last name, and number from the nickname
     match = re.match(r'(\w+)\s+(\w+)\s+\[(\d+)\]', member.nick)
+
     if not match:
         await interaction.response.send_message('Invalid nickname format.')
         return
+
     first_name, last_name, number = match.groups()
     playerID = f'{first_name}_{last_name}_{number}'
 
     # extract the roles from the member
     status = 'substitute' if any(role.name == 'Substitute' for role in member.roles) else 'rostered'
+
     is_captain = any(role.name == 'captain' for role in member.roles)
+
     valid_positions = ['center', 'forward', 'defenseman', 'goalie']
     position = next((role.name for role in member.roles if role.name in valid_positions), None)
+
     handedness = next((role.name[:-1] for role in member.roles if role.name in ['righty', 'lefty']), 'unknown')
 
     # set player info from roles
@@ -192,25 +167,11 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member):
         'handedness': handedness
     }
 
-    # Check if player already exists in the statistics
-    statistics_ref = db.collection('statistics').document(playerID)
-    if checkDuplicatePlayer('statistics', playerID):
-        await interaction.followup.send('Player with that name and number already exists in the statistics.')
-        return
-
-    # Add player to the statistics
-    statistics_ref.set({
-        'gp': 0,
-        'goals': 0,
-        'assists': 0,
-        'points': 0,
-        'ppg': 0,
-        'pims': 0
-    })
-
     try:
-        roster_ref = db.collection('roster').document(playerID)
-        roster_ref.set(player_data)
+        if position == 'goalie':
+            db.collection(season_id).document('roster').collection('goalies').document(playerID).set(player_data)
+        else:
+            db.collection(season_id).document('roster').collection('skaters').document(playerID).set(player_data)
         await interaction.followup.send('Player added successfully.')
     except Exception as e:
         await interaction.followup.send(f'An error occurred: {e}')
@@ -236,11 +197,11 @@ async def addNormiePlayer(interaction: discord.Interaction,
     # Add player to the roster
     roster_ref.set({
         'number': number,
-        'first-name': first_name,
-        'last-name': last_name,
+        'first_name': first_name,
+        'last_name': last_name,
         'position': position,
         'status': status,
-        'is-captain': is_captain,
+        'is_captain': is_captain,
         'handedness': handedness
     })
 

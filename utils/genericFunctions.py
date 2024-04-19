@@ -101,3 +101,13 @@ def get_game_date(interaction):
                 opponent = game_info.get('opponent')  # Get the opponent
 
     return next_game_date, next_game_time, opponent
+
+
+# endregion
+
+# region, get full roster
+def get_roster(interaction, ):
+    category_name = interaction.channel.category.name  # season_id gets created from category name in discord
+    season_id = re.sub(r'\s+', '_', category_name).lower()
+    return (db.collection(season_id).document('roster').collection('skaters').stream(),
+            db.collection(season_id).document('roster').collection('goalies').stream())

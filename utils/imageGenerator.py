@@ -1,6 +1,6 @@
 import cv2
 from datetime import datetime
-from utils.genericFunctions import get_game_date
+from utils.genericFunctions import get_game_date, get_roster
 import services.cellOperations as cellOperations
 import services.sheets as sheets
 import random
@@ -11,7 +11,7 @@ from services.firebaseStuff import *
 def imageGenerator(interaction):
     def numberLookup(playerName):
         if playerName:
-            if playerName in existing_names:
+            if playerName in rosteredPlayers['first-name']:
                 index = existing_names.index(playerName)
                 Player_Number = existing_players[index][0]
                 return f'{Player_Number} - ' + playerName
@@ -53,25 +53,6 @@ def imageGenerator(interaction):
         )
 
     next_game_date, next_game_time, opponent = get_game_date(interaction)
-    Game_Dates = cellOperations.Get_Cell_Range(sheets.RSVP_SHEET_RANGE)[0]
-    Earliest_Game_Date = Game_Dates[0]
-
-    if Earliest_Game_Date:
-        addGameInfo('./../resources/images/BaseLineupCard.svg',
-                    './../resources/images/BaseLineupCard.png',
-                    'OpponentName',
-                    datetime.strptime(Earliest_Game_Date, '%H:%M')
-                    )
-
-        addGameInfo('./../resources/images/Dennis_BaseLineupCard.svg',
-                    './../resources/images/Dennis_BaseLineupCard.png',
-                    'OpponentName',
-                    datetime.strptime(Earliest_Game_Date, '%H:%M')
-                    )
-    else:
-        return
-
-    Earliest_Game_Date = datetime.strptime(Earliest_Game_Date, '%Y-%m-%d %H:%M:%S')
 
     Base_Lineup_Image_Path = 'LineupImages/BaseLineupCard.svg'
     Dennis_Base_Lineup_Image_Path = 'LineupImages/Dennis_BaseLineupCard.svg'
@@ -79,18 +60,37 @@ def imageGenerator(interaction):
     Base_Lineup_Image = bucket.blob(Base_Lineup_Image_Path).download_as_text()
     Dennis_Base_Lineup_Image = bucket.blob(Dennis_Base_Lineup_Image_Path).download_as_text()
 
-    existing_players = cellOperations.get_players()
+    skaters, goalies = get_roster(interaction)
 
-    existing_names = []
+    # if next_game_time and next_game_date:
+    #     addGameInfo('./../resources/images/BaseLineupCard.svg',
+    #                 './../resources/images/BaseLineupCard.png',
+    #                 opponent,
+    #                 next_game_time
+    #                 )
+    #
+    #     addGameInfo('./../resources/images/Dennis_BaseLineupCard.svg',
+    #                 './../resources/images/Dennis_BaseLineupCard.png',
+    #                 opponent,
+    #                 next_game_time
+    #                 )
+    # else:
+    #     return
 
-    for player in existing_players:
-        if len(player) >= 5:
-            existing_names.append(player[1])
+    rosteredPlayers = []
+
+    for player in skaters:
+        playerDictionary = player.to_dict()
+        print(playerDictionary)
+        rosteredPlayers.append([playerDictionary['number'], playerDictionary['first_name'], playerDictionary['last-name']])
+        print([playerDictionary['number'], playerDictionary['first-name'], playerDictionary['last-name']])
 
     Forwards = [
         [
             name.split()[0] for name in sublist
         ] for sublist in cellOperations.Get_Cell_Range(sheets.FORWARDS_LINEUP_RANGE)]
+
+    print(Forwards)
 
     if not Forwards:
         Forwards = [
