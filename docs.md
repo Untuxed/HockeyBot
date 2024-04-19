@@ -1,3 +1,3 @@
-## Slash Commands ##
+# Slash Commands #
 
-# /getmystats
+## /getmystats ##
