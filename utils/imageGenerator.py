@@ -10,7 +10,7 @@ import re
 
 
 async def imageGenerator(interaction):
-    def numberLookup(playerName, roster):
+    def rosterLookup(playerName, roster):
         if playerName:
             for i, playerData in enumerate(roster):
                 if playerName in playerData:
@@ -148,9 +148,9 @@ async def imageGenerator(interaction):
     Dennis_Base_Lineup_Image = cv2.imread('./resources/images/temp_Dennis_BaseLineupCard.png')
 
     for Line_Number, Line in enumerate(Forwards):
-        LW_Text = numberLookup(Line[0], rosteredSkaters)
-        C_Text = numberLookup(Line[1], rosteredSkaters)
-        RW_Text = numberLookup(Line[2], rosteredSkaters)
+        LW_Text = rosterLookup(Line[0], rosteredSkaters)
+        C_Text = rosterLookup(Line[1], rosteredSkaters)
+        RW_Text = rosterLookup(Line[2], rosteredSkaters)
 
         _ = addPlayerLineup(Base_Lineup_Image, LW_Text, 947.5, 200 + Line_Number * Forward_Y_Spacing)
         _ = addPlayerLineup(Base_Lineup_Image, C_Text, 1327.5, 200 + Line_Number * Forward_Y_Spacing)
@@ -164,8 +164,8 @@ async def imageGenerator(interaction):
                             randomTextColor())
 
     for Line_Number, Line in enumerate(Defense):
-        LD_Text = numberLookup(Line[0], rosteredSkaters)
-        RD_Text = numberLookup(Line[1], rosteredSkaters)
+        LD_Text = rosterLookup(Line[0], rosteredSkaters)
+        RD_Text = rosterLookup(Line[1], rosteredSkaters)
 
         _ = addPlayerLineup(Base_Lineup_Image, LD_Text, 947.5, 870 + Line_Number * Defense_Y_Spacing)
         _ = addPlayerLineup(Base_Lineup_Image, RD_Text, 1611.25, 870 + Line_Number * Defense_Y_Spacing)
@@ -175,7 +175,7 @@ async def imageGenerator(interaction):
         _ = addPlayerLineup(Dennis_Base_Lineup_Image, RD_Text, 1611.25, 870 + Line_Number * Forward_Y_Spacing,
                             randomTextColor())
 
-    G_Text = numberLookup(Goalie[0][1], rosteredGoalies)
+    G_Text = rosterLookup(Goalie[0][1], rosteredGoalies)
 
     Lineup_Image_W_Text = addPlayerLineup(Base_Lineup_Image, G_Text, 1327.5, 1500)
     Dennis_Lineup_Image_W_Text = addPlayerLineup(Dennis_Base_Lineup_Image, G_Text, 1327.5, 1500,
