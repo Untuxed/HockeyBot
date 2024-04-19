@@ -1,19 +1,20 @@
 import cv2
 from datetime import datetime
-from utils.genericFunctions import get_game_date, get_roster
+from utils.genericFunctions import get_game_date, get_roster, get_season_and_game_id
 import services.cellOperations as cellOperations
 import services.sheets as sheets
 import random
 from services.firebaseStuff import *
 import cairosvg
+import re
 
 
 async def imageGenerator(interaction):
-    def numberLookup(playerName):
+    def numberLookup(playerName, roster):
         if playerName:
-            for i, playerData in enumerate(rosteredPlayers):
+            for i, playerData in enumerate(roster):
                 if playerName in playerData:
-                    playerNumber = rosteredPlayers[i][0]
+                    playerNumber = roster[i][0]
                     # rosteredPlayers.remove(playerData)
                     return f'{playerNumber} - ' + playerName
             return '## - ' + playerName
@@ -49,6 +50,20 @@ async def imageGenerator(interaction):
             thickness=Font_Weight
         )
 
+    def writeTempFiles(desc, custom=''):
+        image_blob_name = f'LineupImages/{custom}lineupWithName_{game_id}.png'
+        description = desc
+        image_firebase_database_reference = db.collection(season_id).document('games').collection(game_id).document(
+            'Lineup_Cards')
+        blob = bucket.blob(image_blob_name)
+        blob.upload_from_filename(f'./resources/images/temp_{custom}BaseLineupCard.png')
+        image_firebase_database_reference.update({
+            f'{custom}image_url': image_blob_name,
+            f'{custom}description': description
+        })
+
+        return
+
     await interaction.response.defer()
     next_game_date, next_game_time, opponent = get_game_date(interaction)
 
@@ -62,24 +77,31 @@ async def imageGenerator(interaction):
 
     if next_game_time and next_game_date:
         addGameInfo(Base_Lineup_Image,
-                    './resources/images/BaseLineupCard.png',
+                    './resources/images/temp_BaseLineupCard.png',
                     opponent,
                     next_game_time
                     )
 
         addGameInfo(Dennis_Base_Lineup_Image,
-                    './resources/images/Dennis_BaseLineupCard.png',
+                    './resources/images/temp_Dennis_BaseLineupCard.png',
                     opponent,
                     next_game_time
                     )
     else:
         return
 
-    rosteredPlayers = []
+    rosteredSkaters = []
+    rosteredGoalies = []
 
     for player in skaters:
         playerDictionary = player.to_dict()
-        rosteredPlayers.append([int(playerDictionary['number']), playerDictionary['first_name'], playerDictionary['last_name']])
+        rosteredSkaters.append(
+            [int(playerDictionary['number']), playerDictionary['first_name'], playerDictionary['last_name']])
+
+    for player in goalies:
+        playerDictionary = player.to_dict()
+        rosteredGoalies.append(
+            [int(playerDictionary['number']), playerDictionary['first_name'], playerDictionary['last_name']])
 
     Forwards = [
         [
@@ -118,13 +140,13 @@ async def imageGenerator(interaction):
     Forward_Y_Spacing = int(515 / len(Forwards))
     Defense_Y_Spacing = int(500 / len(Defense))
 
-    Base_Lineup_Image = cv2.imread('./resources/images/BaseLineupCard.png')
-    Dennis_Base_Lineup_Image = cv2.imread('./resources/images/Dennis_BaseLineupCard.png')
+    Base_Lineup_Image = cv2.imread('./resources/images/temp_BaseLineupCard.png')
+    Dennis_Base_Lineup_Image = cv2.imread('./resources/images/temp_Dennis_BaseLineupCard.png')
 
     for Line_Number, Line in enumerate(Forwards):
-        LW_Text = numberLookup(Line[0])
-        C_Text = numberLookup(Line[1])
-        RW_Text = numberLookup(Line[2])
+        LW_Text = numberLookup(Line[0], rosteredSkaters)
+        C_Text = numberLookup(Line[1], rosteredSkaters)
+        RW_Text = numberLookup(Line[2], rosteredSkaters)
 
         _ = addPlayerLineup(Base_Lineup_Image, LW_Text, 947.5, 200 + Line_Number * Forward_Y_Spacing)
         _ = addPlayerLineup(Base_Lineup_Image, C_Text, 1327.5, 200 + Line_Number * Forward_Y_Spacing)
@@ -138,8 +160,8 @@ async def imageGenerator(interaction):
                             randomTextColor())
 
     for Line_Number, Line in enumerate(Defense):
-        LD_Text = numberLookup(Line[0])
-        RD_Text = numberLookup(Line[1])
+        LD_Text = numberLookup(Line[0], rosteredSkaters)
+        RD_Text = numberLookup(Line[1], rosteredSkaters)
 
         _ = addPlayerLineup(Base_Lineup_Image, LD_Text, 947.5, 870 + Line_Number * Defense_Y_Spacing)
         _ = addPlayerLineup(Base_Lineup_Image, RD_Text, 1611.25, 870 + Line_Number * Defense_Y_Spacing)
@@ -149,25 +171,46 @@ async def imageGenerator(interaction):
         _ = addPlayerLineup(Dennis_Base_Lineup_Image, RD_Text, 1611.25, 870 + Line_Number * Forward_Y_Spacing,
                             randomTextColor())
 
-    G_Text = numberLookup(Goalie[0][1])
+    G_Text = numberLookup(Goalie[0][1], rosteredGoalies)
 
     Lineup_Image_W_Text = addPlayerLineup(Base_Lineup_Image, G_Text, 1327.5, 1500)
     Dennis_Lineup_Image_W_Text = addPlayerLineup(Dennis_Base_Lineup_Image, G_Text, 1327.5, 1500,
                                                  randomTextColor())
 
+    category_name = interaction.channel.category.name  # season_id gets created from category name in discord
+    season_id = re.sub(r'\s+', '_', category_name).lower()
+
     if next_game_date:
-        cv2.imwrite(f'./resources/images/LineUpWithName_{next_game_date}.png', Lineup_Image_W_Text)
-        cv2.imwrite(f'./resources/images/DennisLineUpWithName_{next_game_date}.png', Dennis_Lineup_Image_W_Text)
-        return f'./resources/images/LineUpWithName_{next_game_date}.png'
+        game_id = next_game_date.strftime('%m-%d-%Y')
+
+        cv2.imwrite(f'./resources/images/temp_BaseLineupCard.png', Lineup_Image_W_Text)
+        cv2.imwrite(f'./resources/images/temp_Dennis_BaseLineupCard.png', Dennis_Lineup_Image_W_Text)
+
+        base_filename = writeTempFiles(desc='Basic Lineup Card')
+        _ = writeTempFiles(desc='Dennis Lineup Card', custom='Dennis_')
+
+        return base_filename, None
     else:
         return
 
 
 def pullImage(interaction):
     next_game_date, next_game_time, opponent = get_game_date(interaction)
+    game_id = next_game_date.strftime('%m-%d-%Y')
+
+    category_name = interaction.channel.category.name
+    season_id = re.sub(r'\s+', '_', category_name).lower()
+
+    normal_image_data_firebase_path = db.collection(season_id).document('games').collection(game_id).document('Lineup_Cards').get().to_dict()['image_url']
+
+    blob = bucket.blob(normal_image_data_firebase_path)
+    normal_image = blob.download_as_bytes()
+
+    with open(f'./resources/images/temp_BaseLineupCard.png', "wb") as f:
+        f.write(normal_image)
 
     if next_game_date:
-        return (f'./resources/images/LineUpWithName_{next_game_date}.png',
-                f'./resources/images/DennisLineUpWithName_{next_game_date}.png')
+        return (f'./resources/images/temp_BaseLineupCard.png',
+                f'./resources/images/temp_Dennis_BaseLineupCard.png')
     else:
         return
