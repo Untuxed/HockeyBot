@@ -71,8 +71,11 @@ def imageGenerator():
 
     Earliest_Game_Date = datetime.strptime(Earliest_Game_Date, '%Y-%m-%d %H:%M:%S')
 
-    Base_Lineup_Image = cv2.imread('./../resources/images/BaseLineupCard.png')
-    Dennis_Base_Lineup_Image = cv2.imread('./../resources/images/Dennis_BaseLineupCard.png')
+    Base_Lineup_Image_Path = 'voodoobot.appspot.com/LineupImages/BaseLineupCard.svg'
+    Dennis_Base_Lineup_Image_Path = 'voodoobot.appspot.com/LineupImages/Dennis_BaseLineupCard.svg'
+
+    Base_Lineup_Image = bucket.blob(Base_Lineup_Image_Path).download_as_text()
+    Dennis_Base_Lineup_Image = bucket.blob(Dennis_Base_Lineup_Image_Path).download_as_text()
 
     existing_players = cellOperations.get_players()
 
