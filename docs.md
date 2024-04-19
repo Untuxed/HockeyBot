@@ -6,7 +6,7 @@
   
 ## /getplayerstats 
 - Description: Returns a players stats as a private message, if the player is on the roster. Otherwise it returns an error message. Anyone can use this command.
-- Usage: /getplayerstats [discord.memeber: discord user]
+- Usage: /getplayerstats [discord.member: discord user]
 
 ## /getlines
 - Description: Sends the lineup for the next game as a private message. This command only works if the lineup has been previously set using the captain command '/setlines'. Otherwise, it responds with an error message.
