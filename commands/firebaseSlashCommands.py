@@ -4,7 +4,7 @@ from tabulate import tabulate
 import os
 from utils.imageGenerator import imageGenerator, pullImage
 from services.firebaseStuff import *
-from utils.genericFunctions import checkDuplicatePlayer, get_player_data, generate_stats_message
+from utils.genericFunctions import checkDuplicatePlayer, get_player_data, generate_stats_message, get_game_date
 import gspread
 from services.sheets import *
 from services.cellOperations import Range_Clear, get_players, Update_Cell_Range
@@ -53,7 +53,7 @@ async def getPlayerStats(interaction: discord.Interaction, member: discord.Membe
     guild=GUILD_ID
 )
 async def setLines(interaction: discord.Interaction):
-    Lineup_File_Name = imageGenerator()
+    Lineup_File_Name = imageGenerator(interaction)
 
     if not Lineup_File_Name:
         await interaction.response.send_message('Something went wrong, looking into it.')
@@ -304,40 +304,11 @@ async def import_rsvps(interaction: discord.Interaction, game_id: str):
 
 # endregion getrsvps
 
-#region we shouldn't need this
+#region get game time
 
 @tree.command(name='getgametime', description='Get the game time', guild=GUILD_ID)
 async def get_game_time(interaction: discord.Interaction):
-    season_id = interaction.channel.category.name.lower().replace(' ', '_')
-    games_db_ref = db.collection(season_id).document('games')
-
-    # Get today's date
-    today = datetime.date.today()
-
-    # Initialize the next game time and date
-    next_game_time = None
-    next_game_date = None
-
-    # Iterate over all game collections
-    for game in games_db_ref.collections():
-        game_date_str = game.id  # The collection id is the game date in mm-dd-yyyy format
-
-        # Check if the document id can be parsed as a date
-        try:
-            game_date = datetime.datetime.strptime(game_date_str, '%m-%d-%Y').date()
-        except ValueError:
-            continue  # Skip this document if its id cannot be parsed as a date
-
-        # Check if the game date is in the future
-        if game_date >= today:
-            # Get the game info
-            game_info = game.document('game-info').get()
-
-            # Check if this game is earlier than the currently found next game
-            if next_game_date is None or game_date < next_game_date:
-                next_game_date = game_date
-                next_game_time = datetime.datetime.strptime(game_info.get('gametime'), '%H:%M').strftime('%I:%M %p')
-                opponent = game_info.get('opponent')  # Get the opponent
+    next_game_date, next_game_time, opponent = get_game_date(interaction)
 
     if next_game_time is not None:
         ephemeral_message = f"NEXT GAME:\nvs. {opponent}\nDate: {next_game_date.strftime('%m-%d-%Y')}\nTime: {next_game_time}"

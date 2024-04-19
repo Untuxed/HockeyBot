@@ -1,5 +1,6 @@
 import cv2
 from datetime import datetime
+from utils.genericFunctions import get_game_date
 import services.cellOperations as cellOperations
 import services.sheets as sheets
 import random
@@ -7,7 +8,7 @@ from services.firebaseStuff import *
 # import cairosvg
 
 
-def imageGenerator():
+def imageGenerator(interaction):
     def numberLookup(playerName):
         if playerName:
             if playerName in existing_names:
@@ -51,6 +52,7 @@ def imageGenerator():
             thickness=Font_Weight
         )
 
+    next_game_date, next_game_time, opponent = get_game_date(interaction)
     Game_Dates = cellOperations.Get_Cell_Range(sheets.RSVP_SHEET_RANGE)[0]
     Earliest_Game_Date = Game_Dates[0]
 
@@ -71,8 +73,8 @@ def imageGenerator():
 
     Earliest_Game_Date = datetime.strptime(Earliest_Game_Date, '%Y-%m-%d %H:%M:%S')
 
-    Base_Lineup_Image_Path = 'voodoobot.appspot.com/LineupImages/BaseLineupCard.svg'
-    Dennis_Base_Lineup_Image_Path = 'voodoobot.appspot.com/LineupImages/Dennis_BaseLineupCard.svg'
+    Base_Lineup_Image_Path = 'LineupImages/BaseLineupCard.svg'
+    Dennis_Base_Lineup_Image_Path = 'LineupImages/Dennis_BaseLineupCard.svg'
 
     Base_Lineup_Image = bucket.blob(Base_Lineup_Image_Path).download_as_text()
     Dennis_Base_Lineup_Image = bucket.blob(Dennis_Base_Lineup_Image_Path).download_as_text()
