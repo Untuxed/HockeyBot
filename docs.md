@@ -20,3 +20,7 @@
 ## /updatestats
 - Description: Adds the values of the arguments to a player's statistics in the Google Sheet using a Discord command. Alternatively, users can manually update the stats in the Google Sheet, which may be more convenient. By default, all statistic arguments are initialized to zero unless specified otherwise. The 'gp' argument assigns the value passed into the command as the value for the skater in the database. This command is scheduled for eventual deprecation and replacement with a system that assigns stats directly to the Firebase database.
 - Usage: /updatestats [discord.member: discord user] [int: goals] [int: assists] [int: pims] [int: gp]
+
+## /addplayer
+- Description: Addes a player to the Firebase roster and statistical database. It uses the category name as the season ID. Currently, it stores the player's discordID, number, first name, last name, position, stats, if they are a captain, and their handedness. This command also separates the skaters and the goalies into separate Firebase document pages. If adding the player is successful it will return a success message and if it fails the bot will send an error message.
+- Usage: /addplayer [discord.member: discord user]
