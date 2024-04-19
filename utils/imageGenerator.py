@@ -15,7 +15,6 @@ async def imageGenerator(interaction):
             for i, playerData in enumerate(roster):
                 if playerName in playerData:
                     playerNumber = roster[i][0]
-                    # rosteredPlayers.remove(playerData)
                     return f'{playerNumber} - ' + playerName
             return '## - ' + playerName
         else:
@@ -24,10 +23,12 @@ async def imageGenerator(interaction):
     def randomTextColor():
         return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
 
-    def addGameInfo(baseSVGFile, newImageFilePath, opponentName, gameTime):
+    def addGameInfo(baseSVGFile, newImageFilePath, opponentName, gameTime, gameDate):
         temp_SVG_FilePath = './resources/images/temp.svg'
 
-        SVG_Game_Info = baseSVGFile.replace('### REPLACE ME ###', opponentName + gameTime)
+        gameDate = gameDate.strftime('%m-%d')
+
+        SVG_Game_Info = baseSVGFile.replace('### REPLACE ME ###', opponentName[3:-2] + ': ' + gameDate + ', ' + gameTime)
 
         with open(temp_SVG_FilePath, 'w') as file:
             file.write(SVG_Game_Info)
@@ -55,14 +56,15 @@ async def imageGenerator(interaction):
         description = desc
         image_firebase_database_reference = db.collection(season_id).document('games').collection(game_id).document(
             'Lineup_Cards')
+        filename = f'./resources/images/temp_{custom}BaseLineupCard.png'
         blob = bucket.blob(image_blob_name)
-        blob.upload_from_filename(f'./resources/images/temp_{custom}BaseLineupCard.png')
+        blob.upload_from_filename(filename)
         image_firebase_database_reference.update({
             f'{custom}image_url': image_blob_name,
             f'{custom}description': description
         })
 
-        return
+        return filename
 
     await interaction.response.defer()
     next_game_date, next_game_time, opponent = get_game_date(interaction)
@@ -79,13 +81,15 @@ async def imageGenerator(interaction):
         addGameInfo(Base_Lineup_Image,
                     './resources/images/temp_BaseLineupCard.png',
                     opponent,
-                    next_game_time
+                    next_game_time,
+                    next_game_date
                     )
 
         addGameInfo(Dennis_Base_Lineup_Image,
                     './resources/images/temp_Dennis_BaseLineupCard.png',
                     opponent,
-                    next_game_time
+                    next_game_time,
+                    next_game_date
                     )
     else:
         return
