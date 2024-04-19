@@ -12,12 +12,13 @@ def imageGenerator(interaction):
     def numberLookup(playerName):
         if playerName:
             for i, playerData in enumerate(rosteredPlayers):
+                print(i, 'outside')
                 if playerName in playerData:
+                    print(playerData, 'inside')
                     playerNumber = rosteredPlayers[i][0]
-                    rosteredPlayers.remove(playerData)
+                    # rosteredPlayers.remove(playerData)
                     return f'{playerNumber} - ' + playerName
-                else:
-                    return '## - ' + playerName
+            return '## - ' + playerName
         else:
             return ' '
 
@@ -25,7 +26,7 @@ def imageGenerator(interaction):
         return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
 
     def addGameInfo(baseSVGFile, newImageFilePath, opponentName, gameTime):
-        temp_SVG_FilePath = './../resources/images/temp.svg'
+        temp_SVG_FilePath = './resources/images/temp.svg'
 
         SVG_Game_Info = baseSVGFile.replace('### REPLACE ME ###', opponentName + gameTime)
 
@@ -62,13 +63,13 @@ def imageGenerator(interaction):
 
     if next_game_time and next_game_date:
         addGameInfo(Base_Lineup_Image,
-                    'LineupImages/BaseLineupCard.png',
+                    './resources/images/BaseLineupCard.png',
                     opponent,
                     next_game_time
                     )
 
         addGameInfo(Dennis_Base_Lineup_Image,
-                    'LineupImages/Dennis_BaseLineupCard.png',
+                    './resources/images/Dennis_BaseLineupCard.png',
                     opponent,
                     next_game_time
                     )
@@ -80,8 +81,6 @@ def imageGenerator(interaction):
     for player in skaters:
         playerDictionary = player.to_dict()
         rosteredPlayers.append([int(playerDictionary['number']), playerDictionary['first_name'], playerDictionary['last_name']])
-
-    print(rosteredPlayers)
 
     Forwards = [
         [
@@ -120,6 +119,9 @@ def imageGenerator(interaction):
     Forward_Y_Spacing = int(515 / len(Forwards))
     Defense_Y_Spacing = int(500 / len(Defense))
 
+    Base_Lineup_Image = cv2.imread('./resources/images/BaseLineupCard.png')
+    Dennis_Base_Lineup_Image = cv2.imread('./resources/images/Dennis_BaseLineupCard.png')
+
     for Line_Number, Line in enumerate(Forwards):
         LW_Text = numberLookup(Line[0])
         C_Text = numberLookup(Line[1])
@@ -140,38 +142,33 @@ def imageGenerator(interaction):
         LD_Text = numberLookup(Line[0])
         RD_Text = numberLookup(Line[1])
 
-        _ = addPlayerLineup(Base_Lineup_Image, LD_Text, 380, 870 + Line_Number * Defense_Y_Spacing)
+        _ = addPlayerLineup(Base_Lineup_Image, LD_Text, 947.5, 870 + Line_Number * Defense_Y_Spacing)
         _ = addPlayerLineup(Base_Lineup_Image, RD_Text, 1611.25, 870 + Line_Number * Defense_Y_Spacing)
 
-        _ = addPlayerLineup(Dennis_Base_Lineup_Image, LD_Text, 947.5, 200 + Line_Number * Forward_Y_Spacing,
+        _ = addPlayerLineup(Dennis_Base_Lineup_Image, LD_Text, 947.5, 870 + Line_Number * Forward_Y_Spacing,
                             randomTextColor())
-        _ = addPlayerLineup(Dennis_Base_Lineup_Image, RD_Text, 947.5, 200 + Line_Number * Forward_Y_Spacing,
+        _ = addPlayerLineup(Dennis_Base_Lineup_Image, RD_Text, 1611.25, 870 + Line_Number * Forward_Y_Spacing,
                             randomTextColor())
 
     G_Text = numberLookup(Goalie[0][1])
 
     Lineup_Image_W_Text = addPlayerLineup(Base_Lineup_Image, G_Text, 1327.5, 1500)
-    Dennis_Lineup_Image_W_Text = addPlayerLineup(Base_Lineup_Image, G_Text, 1327.5, 1500,
+    Dennis_Lineup_Image_W_Text = addPlayerLineup(Dennis_Base_Lineup_Image, G_Text, 1327.5, 1500,
                                                  randomTextColor())
 
-    if Earliest_Game_Date:
-        timestamp = (Earliest_Game_Date - datetime(1970, 1, 1)).total_seconds()
-        cv2.imwrite(f'./../resources/images/LineUpWithName_{timestamp}.png', Lineup_Image_W_Text)
-        cv2.imwrite(f'./../resources/images/DennisLineUpWithName_{timestamp}.png', Dennis_Lineup_Image_W_Text)
-        return f'./../resources/images/LineUpWithName_{timestamp}.png'
+    if next_game_date:
+        cv2.imwrite(f'./resources/images/LineUpWithName_{next_game_date}.png', Lineup_Image_W_Text)
+        cv2.imwrite(f'./resources/images/DennisLineUpWithName_{next_game_date}.png', Dennis_Lineup_Image_W_Text)
+        return f'./resources/images/LineUpWithName_{next_game_date}.png'
     else:
         return
 
 
-def pullImage():
-    Game_Dates = cellOperations.Get_Cell_Range(sheets.RSVP_SHEET_RANGE)[0]
-    Earliest_Game_Date = Game_Dates[0]
+def pullImage(interaction):
+    next_game_date, next_game_time, opponent = get_game_date(interaction)
 
-    Earliest_Game_Date = datetime.strptime(Earliest_Game_Date, '%Y-%m-%d %H:%M:%S')
-
-    if Earliest_Game_Date:
-        timestamp = (Earliest_Game_Date - datetime(1970, 1, 1)).total_seconds()
-        return (f'./../resources/images/LineUpWithName_{timestamp}.png',
-                f'./../resources/images/DennisLineUpWithName_{timestamp}.png')
+    if next_game_date:
+        return (f'./resources/images/LineUpWithName_{next_game_date}.png',
+                f'./resources/images/DennisLineUpWithName_{next_game_date}.png')
     else:
         return

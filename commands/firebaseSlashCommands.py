@@ -58,7 +58,7 @@ async def setLines(interaction: discord.Interaction):
     if not Lineup_File_Name:
         await interaction.response.send_message('Something went wrong, looking into it.')
 
-    Lineup_File_Name, _ = pullImage()
+    Lineup_File_Name, _ = pullImage(interaction)
 
     if not Lineup_File_Name:
         await interaction.response.send_message('Something went wrong, looking into it.')
@@ -75,7 +75,7 @@ async def setLines(interaction: discord.Interaction):
     guild=GUILD_ID
 )
 async def getLines(interaction: discord.Interaction):
-    Lineup_File_Name, Dennis_Lineup_File_Name = pullImage()
+    Lineup_File_Name, Dennis_Lineup_File_Name = pullImage(interaction)
 
     if not Lineup_File_Name:
         await interaction.response.send_message('Something went wrong, looking into it.', ephemeral=True)
