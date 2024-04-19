@@ -8,13 +8,11 @@ from services.firebaseStuff import *
 import cairosvg
 
 
-def imageGenerator(interaction):
+async def imageGenerator(interaction):
     def numberLookup(playerName):
         if playerName:
             for i, playerData in enumerate(rosteredPlayers):
-                print(i, 'outside')
                 if playerName in playerData:
-                    print(playerData, 'inside')
                     playerNumber = rosteredPlayers[i][0]
                     # rosteredPlayers.remove(playerData)
                     return f'{playerNumber} - ' + playerName
@@ -51,6 +49,7 @@ def imageGenerator(interaction):
             thickness=Font_Weight
         )
 
+    await interaction.response.defer()
     next_game_date, next_game_time, opponent = get_game_date(interaction)
 
     Base_Lineup_Image_Path = 'LineupImages/BaseLineupCard.svg'

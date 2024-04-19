@@ -53,17 +53,17 @@ async def getPlayerStats(interaction: discord.Interaction, member: discord.Membe
     guild=GUILD_ID
 )
 async def setLines(interaction: discord.Interaction):
-    Lineup_File_Name = imageGenerator(interaction)
+    Lineup_File_Name = await imageGenerator(interaction)
 
     if not Lineup_File_Name:
-        await interaction.response.send_message('Something went wrong, looking into it.')
+        await interaction.followup.send('Something went wrong, looking into it.')
 
     Lineup_File_Name, _ = pullImage(interaction)
 
     if not Lineup_File_Name:
-        await interaction.response.send_message('Something went wrong, looking into it.')
+        await interaction.followup.send('Something went wrong, looking into it.')
     else:
-        await interaction.response.send_message('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
+        await interaction.followup.send('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
 
 
 # endregion set-lineup
@@ -78,7 +78,7 @@ async def getLines(interaction: discord.Interaction):
     Lineup_File_Name, Dennis_Lineup_File_Name = pullImage(interaction)
 
     if not Lineup_File_Name:
-        await interaction.response.send_message('Something went wrong, looking into it.', ephemeral=True)
+        await interaction.followup.send_message('Something went wrong, looking into it.', ephemeral=True)
     elif not os.path.exists(Lineup_File_Name):
         await interaction.response.send_message('Lineup for the upcoming game not set yet.', ephemeral=True)
     elif int(interaction.user.id) == 1158794675558285385:
