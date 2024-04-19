@@ -13,7 +13,7 @@
 - Usage: /getlines
 
 # Captain Commands
-## /setlines
+## /setlines <a name="setlines"></a>
 - Description: Retrieves and displays information about the next scheduled game based on data from a Google Sheet. Additionally, it generates a custom lineup image based on the number of lines present in the Google Sheet. In the event that there are no upcoming games or the bot encounters an issue while generating the image, it will respond with an error message.
 - Usage: /setlines
 
