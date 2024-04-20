@@ -17,10 +17,6 @@
 - Description: Retrieves and displays information about the next scheduled game based on data from a Google Sheet. Additionally, it generates a custom lineup image based on the number of lines present in the Google Sheet. In the event that there are no upcoming games or the bot encounters an issue while generating the image, it will respond with an error message.
 - Usage: /setlines
 
-## /updatestats
-- Description: Adds the values of the arguments to a player's statistics in the Google Sheet using a Discord command. Alternatively, users can manually update the stats in the Google Sheet, which may be more convenient. By default, all statistic arguments are initialized to zero unless specified otherwise. The 'gp' argument assigns the value passed into the command as the value for the skater in the database. This command is scheduled for eventual deprecation and replacement with a system that assigns stats directly to the Firebase database.
-- Usage: /updatestats [discord.member: discord user] [int: goals] [int: assists] [int: pims] [int: gp]
-
 ## /addplayer
-- Description: Adds a player to the Firebase roster and statistical database. It uses the category name as the season ID. The bot reads the player's Discord ID, number, first name, last name, position, stats, if they are a captain, and their handedness from tags on discord. This command also separates the skaters and the goalies into separate Firebase document pages. If adding the player is successful, it will return a success message; if it fails, the bot will send an error message.
+- Description: Adds a player to the Firebase roster and statistical database. It uses the category name as the season ID. The player's nickname in discord has to be in the format: player's firstname player's lastname [player's number]. If this format is followed the bot gets all of the required information (player's Discord ID, number, first name, last name, position, stats, if they are a captain, and their handedness) from their name and roles on discord. This command also separates the skaters and the goalies into separate Firebase document pages. If adding the player is successful, it will return a success message; if it fails, the bot will send an error message.
 - Usage: /addplayer [discord.member: discord user]
