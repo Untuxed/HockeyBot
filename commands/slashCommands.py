@@ -7,3 +7,4 @@ from commands.addnormie import addNormie
 from commands.importrsvps import importRsvps
 from commands.getgametime import getGameTime
 from commands.avatar import avatar
+from commands.importstats import importStats
