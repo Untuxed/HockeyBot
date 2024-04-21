@@ -71,10 +71,25 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member):
     try:
         if position == 'not specified':
             await interaction.response.send_message('No position role assigned.', ephemeral=True)
+
         if position == 'goalie':
-            db.collection(season_id).document('roster').collection('goalies').document(player_id).set(player_data)
+            player_doc = db.collection(season_id).document('roster').collection('goalies').document(player_id)
+            player_info = player_doc.get()
+
+            if not player_info.exists:
+                player_doc.set(player_data)
+            else:
+                player_doc.update(player_data)
+
         else:
-            db.collection(season_id).document('roster').collection('skaters').document(player_id).set(player_data)
+            player_doc = db.collection(season_id).document('roster').collection('skaters').document(player_id)
+            player_info = player_doc.get()
+
+            if not player_info.exists:
+                player_doc.set(player_data)
+            else:
+                player_doc.update(player_data)
+
         await interaction.response.send_message(content='Player added successfully.', ephemeral=True)
     except Exception as e:
         await interaction.response.send_message(f'An error occurred: {e}', ephemeral=True)

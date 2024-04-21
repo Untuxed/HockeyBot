@@ -17,7 +17,7 @@ async def importStats(interaction: discord.Interaction):
     # Parse the stats data
     player_stats = {}
     for row in stats_data:
-        number, first_name, last_name, gp, goals, assists, points, pims, plus_minus = row
+        number, first_name, last_name, gp, goals, assists, points, pims, plus_minus, ppg = row
         player_id = f"{first_name}_{last_name}_{number}"
         stats = {
             "GP": int(gp),
@@ -25,7 +25,8 @@ async def importStats(interaction: discord.Interaction):
             "Assists": int(assists),
             "Points": int(points),
             "PIMs": int(pims),
-            "Plus/Minus": int(plus_minus)
+            "Plus/Minus": int(plus_minus),
+            "PPG": float(ppg)
         }
         player_stats[player_id] = stats
 
