@@ -28,7 +28,8 @@ async def imageGenerator(interaction):
 
         gameDate = gameDate.strftime('%m-%d')
 
-        SVG_Game_Info = baseSVGFile.replace('### REPLACE ME ###', opponentName[3:-2] + ': ' + gameDate + ', ' + gameTime)
+        SVG_Game_Info = baseSVGFile.replace('### REPLACE ME ###',
+                                            opponentName[3:-2] + ': ' + gameDate + ', ' + gameTime)
 
         with open(temp_SVG_FilePath, 'w') as file:
             file.write(SVG_Game_Info)
@@ -59,19 +60,19 @@ async def imageGenerator(interaction):
         filename = f'./resources/images/temp_{custom}BaseLineupCard.png'
         blob = bucket.blob(image_blob_name)
         blob.upload_from_filename(filename)
-        
+
         lineup_doc = db.collection(season_id).document('games').collection(game_id).document('Lineup_Cards').get()
-        
+
         if not lineup_doc.exists:
-             image_firebase_database_reference.set({
-            	f'{custom}image_url': image_blob_name,
-            	f'{custom}description': description
-        	})
-       	else:
-       	     image_firebase_database_reference.update({
-            f'{custom}image_url': image_blob_name,
-            f'{custom}description': description
-        })
+            image_firebase_database_reference.set({
+                f'{custom}image_url': image_blob_name,
+                f'{custom}description': description
+            })
+        else:
+            image_firebase_database_reference.update({
+                f'{custom}image_url': image_blob_name,
+                f'{custom}description': description
+            })
 
         return filename
 
@@ -210,13 +211,14 @@ async def imageGenerator(interaction):
 def pullImage(interaction):
     next_game_date, next_game_time, opponent = get_game_date(interaction)
     if next_game_date is None:
-         return None, None
+        return None, None
     game_id = next_game_date.strftime('%m-%d-%Y')
 
     category_name = interaction.channel.category.name
     season_id = re.sub(r'\s+', '_', category_name).lower()
 
-    normal_image_data_firebase_path = db.collection(season_id).document('games').collection(game_id).document('Lineup_Cards').get().to_dict()['image_url']
+    normal_image_data_firebase_path = \
+    db.collection(season_id).document('games').collection(game_id).document('Lineup_Cards').get().to_dict()['image_url']
 
     blob = bucket.blob(normal_image_data_firebase_path)
     normal_image = blob.download_as_bytes()

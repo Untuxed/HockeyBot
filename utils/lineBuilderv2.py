@@ -26,7 +26,6 @@ async def on_message(message):
     if message.embeds and not message.embeds[0].title.startswith(':calendar_spiral:'):
         print(message.embeds[0].title)
         return
-    
     else:
         print('firebase')
     # if normal event creation message from sesh, create game documents in db
