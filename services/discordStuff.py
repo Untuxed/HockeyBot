@@ -1,5 +1,5 @@
 import discord
-from discord import app_commands
+from discord import app_commands, MessageType
 
 intents = discord.Intents.default()
 intents.message_content = True
