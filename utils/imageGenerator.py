@@ -59,7 +59,16 @@ async def imageGenerator(interaction):
         filename = f'./resources/images/temp_{custom}BaseLineupCard.png'
         blob = bucket.blob(image_blob_name)
         blob.upload_from_filename(filename)
-        image_firebase_database_reference.update({
+        
+        lineup_doc = db.collection(season_id).document('games').collection(game_id).document('Lineup_Cards').get()
+        
+        if not lineup_doc.exists:
+             image_firebase_database_reference.set({
+            	f'{custom}image_url': image_blob_name,
+            	f'{custom}description': description
+        	})
+       	else:
+       	     image_firebase_database_reference.update({
             f'{custom}image_url': image_blob_name,
             f'{custom}description': description
         })
@@ -200,6 +209,8 @@ async def imageGenerator(interaction):
 
 def pullImage(interaction):
     next_game_date, next_game_time, opponent = get_game_date(interaction)
+    if next_game_date is None:
+         return None, None
     game_id = next_game_date.strftime('%m-%d-%Y')
 
     category_name = interaction.channel.category.name

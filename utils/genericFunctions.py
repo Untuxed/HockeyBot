@@ -43,8 +43,7 @@ def generate_stats_message(player_data: dict):
 
 # region linebuilderv2 functions
 def get_season_and_game_id(message):
-    category_name = message.channel.category.name  # season_id gets created from category name in discord
-    season_id = re.sub(r'\s+', '_', category_name).lower()
+    season_id = get_season_id(message)
 
     # get game information from embed to use as document id
     if message.embeds:
@@ -63,12 +62,16 @@ def get_season_and_game_id(message):
 
     game_id = f'{formatted_time}'
     return season_id, game_id, gametime, opponent
-
-
 # endregion
+
+def get_season_id(messageish):
+    category_name = messageish.channel.category.name  # season_id gets created from category name in discord
+    season_id = re.sub(r'\s+', '_', category_name).lower()
+    return season_id
 
 # region finding dates from firebase
 def get_game_date(interaction):
+    opponent = None 
     season_id = interaction.channel.category.name.lower().replace(' ', '_')
     games_db_ref = db.collection(season_id).document('games')
 
