@@ -1,7 +1,7 @@
 from services.googleStuff import *
 from services.discordStuff import *
 from services.sheets import *
-from utils.lineBuilderv2 import *
+from utils.linebuilder import *
 from dev.devTokens import discord_token_prod, discord_token_dev
 from commands.slashCommands import *
 

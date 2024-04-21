@@ -1,175 +1,86 @@
-# from services.discordStuff import *
-# import re
-# import time
-# from datetime import datetime, timedelta
-# from services.cellOperations import *
+from services.discordStuff import *
+import re
+from datetime import datetime, timedelta
+from services.firebaseStuff import *
+from utils.genericFunctions import get_season_and_game_id
 
 
-# @hockeyBot.event
-# async def on_message(message):
-#     if message.content and str(message.author) == 'sesh#1244':
-#         if int(re.search(r'\d+', str(message.content)).group(0)) == 1218300771318370395:
-#             RSVP_sheet_values = Get_Cell_Range(RSVP_SHEET_RANGE)
+# region create RSVP document from sesh message
+@hockeyBot.event
+async def on_message(message):
 
-#             excludedKeywords = ['Robot Database', 'Confirmed', 'Maybes', 'Scratches']
+    if message.author.name != 'sesh':
+        return
+    
+    if isinstance(message.channel, discord.Thread):        
+        if message.type == MessageType.thread_starter_message:
+            # Get the role for the roster to mention from category name
+            role_name = f"{message.channel.category.name} Roster"
+            role = discord.utils.get(message.guild.roles, name=role_name)
+            if role and message.author.name == 'sesh':
+                # Send a message in the thread that mentions the role
+                await message.channel.send(
+                    f"{role.mention} The next game has been posted. To RSVP, go [HERE!](https://discord.com/channels/{message.guild.id}/{message.channel.parent.id}/{message.id})")
+            return
 
-#             for j, row in enumerate(RSVP_sheet_values):
-#                 if row and row[0] not in excludedKeywords:
-#                     row.pop(0)
-
-#             RSVP_Dates_Range = 'RSVP Sheet!A2:H2'
-#             RSVP_Confirmed_Range = 'RSVP Sheet!A4:H19'
-#             RSVP_Maybe_Range = 'RSVP Sheet!A21:H35'
-#             RSVP_Scratch_Range = 'RSVP Sheet!A37:H50'
-
-#             ranges_to_clear = [RSVP_Dates_Range, RSVP_Confirmed_Range, RSVP_Maybe_Range, RSVP_Scratch_Range]
-
-#             await Range_Clear(ranges_to_clear)
-#             await Update_Cell_Range(RSVP_SHEET_RANGE, RSVP_sheet_values)
+    if message.embeds and not message.embeds[0].title.startswith(':calendar_spiral:'):
+        print(message.embeds[0].title)
+        return
+    else:
+        print('firebase')
+    # if normal event creation message from sesh, create game documents in db
+        season_id, game_id, gametime, opponent = get_season_and_game_id(message)
+        if season_id and game_id:
+            db.collection(season_id).document('games').collection(game_id).document('RSVPs').set({})
+            db.collection(season_id).document('games').collection(game_id).document('game-info').set({'gametime': gametime, 'opponent': opponent, 'discord_message_id': message.id})
 
 
-# @hockeyBot.event
-# async def on_message_edit(_, after):
-#     def column_index_to_letter(numericalIndex):
-#         dividend = numericalIndex
-#         column_letter = ''
-#         while dividend > 0:
-#             modulo = (dividend - 1) % 26
-#             column_letter = chr(65 + modulo) + column_letter
-#             dividend = (dividend - modulo) // 26
-#         return column_letter
+# endregion
 
-#     def getPlayers(data):
-#         confirmed = data.fields[1].value
-#         maybes = data.fields[2].value
-#         scratches = data.fields[3].value
+# region get RSVPs on message edit (RSVP)
+@hockeyBot.event
+async def on_raw_message_edit(payload):
+    if 'author' in payload.data and payload.data['author']['username'] == 'sesh':
+        if payload.data['embeds'] and not payload.data['embeds'][0]['title'].startswith(':calendar_spiral:'):
+            return
 
-#         return [re.findall(r'\d+', str(confirmed)), re.findall(r'\d+', str(maybes)), re.findall(r'\d+', str(scratches))]
+        messageID = int(payload.data['id'])
+        channelID = int(payload.data['channel_id'])
 
-#     if after.content and str(after.author) == 'sesh#1244':
-#         if int(re.search(r'\d+', str(after.content)).group(0)) == 1218300771318370395:
-#             return
+        message = await hockeyBot.get_channel(channelID).fetch_message(messageID)
 
-#     if str(after.author) == 'sesh#1244':
-#         embedded_data = after.embeds[0]
-#         gameTime = int(
-#             re.search(r'\d+', str(embedded_data.fields[0].value)).group())
-#         if gameTime - 10 < int(time.time()):
-#             return
-#         legibleDateTime = str(datetime.utcfromtimestamp(
-#             gameTime) - timedelta(hours=4))
+        # get season and document id's from the edited message
+        season_id, game_id, gametime, opponent = get_season_and_game_id(message)
 
-#         RSVP_sheet_values = Get_Cell_Range(RSVP_SHEET_RANGE)
+        # get the RSVP document from db
+        rsvp_doc = db.collection(season_id).document('games').collection(game_id).document('RSVPs').get()
 
-#         existing_players = get_players()
+        if not rsvp_doc.exists:
+            db.collection(season_id).document('games').collection(game_id).document('RSVPs').set({})
+            db.collection(season_id).document('games').collection(game_id).document('game-info').set({'gametime': gametime, 'opponent': opponent, 'discord_message_id': message.id})
 
-#         existing_IDs = []
+        # instantiate categories so it doesn't get mad
+        for embed in message.embeds:
+            attendees = []
+            maybes = []
+            nos = []
 
-#         for player in existing_players:
-#             if len(player) >= 5:
-#                 existing_IDs.append(player[4])
+        # get the RSVPs from the edited message
+        for field in embed.fields:
+            if '✅ Attendees' in field.name:
+                attendee_ids = re.findall(r'<@(\d+)>', field.value)
+                attendees = [message.guild.get_member(int(id)).nick for id in attendee_ids]
+            elif '🤷 Maybe' in field.name:
+                maybe_ids = re.findall(r'<@(\d+)>', field.value)
+                maybes = [message.guild.get_member(int(id)).nick for id in maybe_ids]
+            elif '❌ No' in field.name:
+                no_ids = re.findall(r'<@(\d+)>', field.value)
+                nos = [message.guild.get_member(int(id)).nick for id in no_ids]
 
-#         Current_Scheduled_Games = RSVP_sheet_values[0]
-
-#         if not Current_Scheduled_Games:
-#             j = -1
-
-#         for j, gameTime in enumerate(Current_Scheduled_Games):
-#             if legibleDateTime == gameTime:
-#                 colLetter = column_index_to_letter(j + 1)
-
-#                 Confirmed_Range = 'RSVP Sheet!' + colLetter + '4:' + colLetter + '19'
-#                 Maybe_Range = 'RSVP Sheet!' + colLetter + '21:' + colLetter + '35'
-#                 Scratch_Range = 'RSVP Sheet!' + colLetter + '37:' + colLetter + '50'
-
-#                 ranges_to_clear = [Confirmed_Range, Maybe_Range, Scratch_Range]
-
-#                 await Range_Clear(ranges_to_clear)
-
-#                 [confirmedPlayers, maybePlayers, scratchedPlayers] = getPlayers(embedded_data)
-
-#                 Confirmed_Player_Values = []
-#                 Confirmed_Player_Range = 'RSVP Sheet!' + colLetter + '4:' + colLetter + str(4 + len(confirmedPlayers))
-
-#                 Maybe_Player_Values = []
-#                 Maybe_Player_Range = 'RSVP Sheet!' + colLetter + '21:' + colLetter + str(len(21 + maybePlayers))
-
-#                 Scratched_Player_Values = []
-#                 Scratched_Player_Range = 'RSVP Sheet!' + colLetter + '37:' + colLetter + str(len(37 + scratchedPlayers))
-
-#                 for i, id in enumerate(confirmedPlayers):
-#                     if id in existing_IDs:
-#                         index = existing_IDs.index(id)
-#                         First_Name = existing_players[index][1]
-#                         Position = existing_players[index][3]
-#                         Confirmed_Player_Values.append(First_Name + ' (' + Position + ')')
-
-#                 for i, id in enumerate(maybePlayers):
-#                     if id in existing_IDs:
-#                         index = existing_IDs.index(id)
-#                         First_Name = existing_players[index][1]
-#                         Position = existing_players[index][3]
-#                         Maybe_Player_Values.append(First_Name + ' (' + Position + ')')
-
-#                 for i, id in enumerate(scratchedPlayers):
-#                     if id in existing_IDs:
-#                         index = existing_IDs.index(id)
-#                         First_Name = existing_players[index][1]
-#                         Position = existing_players[index][3]
-#                         Scratched_Player_Values.append(First_Name + ' (' + Position + ')')
-
-#                 await Update_Cell_Range(Confirmed_Player_Range, Confirmed_Player_Values)
-#                 await Update_Cell_Range(Maybe_Player_Range, Maybe_Player_Values)
-#                 await Update_Cell_Range(Scratched_Player_Range, Scratched_Player_Values)
-#                 return
-
-#         colLetter = column_index_to_letter(j + 2)
-
-#         Confirmed_Range = 'RSVP Sheet!' + colLetter + '4:' + colLetter + '19'
-#         Maybe_Range = 'RSVP Sheet!' + colLetter + '21:' + colLetter + '35'
-#         Scratch_Range = 'RSVP Sheet!' + colLetter + '37:' + colLetter + '50'
-
-#         Date_Cell = 'RSVP SHEET!' + colLetter + '2'
-
-#         await Update_Cell(Date_Cell, legibleDateTime)
-
-#         ranges_to_clear = [Confirmed_Range, Maybe_Range, Scratch_Range]
-
-#         await Range_Clear(ranges_to_clear)
-
-#         [confirmedPlayers, maybePlayers, scratchedPlayers] = getPlayers(embedded_data)
-
-#         Confirmed_Player_Values = []
-#         Confirmed_Player_Range = 'RSVP Sheet!' + colLetter + '4:' + colLetter + str(4 + len(confirmedPlayers))
-
-#         Maybe_Player_Values = []
-#         Maybe_Player_Range = 'RSVP Sheet!' + colLetter + '21:' + colLetter + str(len(21 + maybePlayers))
-
-#         Scratched_Player_Values = []
-#         Scratched_Player_Range = 'RSVP Sheet!' + colLetter + '37:' + colLetter + str(len(37 + scratchedPlayers))
-
-#         for i, id in enumerate(confirmedPlayers):
-#             if id in existing_IDs:
-#                 index = existing_IDs.index(id)
-#                 First_Name = existing_players[index][1]
-#                 Position = existing_players[index][3]
-#                 Confirmed_Player_Values.append(First_Name + ' (' + Position + ')')
-
-#         for i, id in enumerate(maybePlayers):
-#             if id in existing_IDs:
-#                 index = existing_IDs.index(id)
-#                 First_Name = existing_players[index][1]
-#                 Position = existing_players[index][3]
-#                 Maybe_Player_Values.append(First_Name + ' (' + Position + ')')
-
-#         for i, id in enumerate(scratchedPlayers):
-#             if id in existing_IDs:
-#                 index = existing_IDs.index(id)
-#                 First_Name = existing_players[index][1]
-#                 Position = existing_players[index][3]
-#                 Scratched_Player_Values.append(First_Name + ' (' + Position + ')')
-
-#         await Update_Cell_Range(Confirmed_Player_Range, Confirmed_Player_Values)
-#         await Update_Cell_Range(Maybe_Player_Range, Maybe_Player_Values)
-#         await Update_Cell_Range(Scratched_Player_Range, Scratched_Player_Values)
-#         return
+            # Update the document in Firebase
+            db.collection(season_id).document('games').collection(game_id).document('RSVPs').update({
+                'attendees': attendees,
+                'maybes': maybes,
+                'nos': nos
+            })
+# endregion
