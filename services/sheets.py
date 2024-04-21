@@ -1,4 +1,6 @@
-from googleStuff import *
+import gspread
+from services.googleStuff import *
+from googleapiclient.discovery import build
 
 client = gspread.authorize(creds)
 googleDoc = client.open('VoodooSpring2024Lineup')

@@ -1,6 +1,7 @@
-discord
+opencv-python
+tabulate
 gspread
 oauth2client
 google-api-python-client
-tabulate
-opencv-python
+discord.py
+firebase_admin
