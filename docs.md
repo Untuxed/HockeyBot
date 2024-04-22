@@ -50,17 +50,18 @@
   ```
 
 ## get_player_data(interaction, first_name=None, last_name=None, number=None)
-- Description: This asynchronous function retrieves data of a player from Firestore based on provided parameters such as first name, last name, and number. If not provided, it extracts these details from the interaction user's nickname. It then fetches the player's statistics data for a specific season from Firestore.
-
+- Description: Retrieves data of a player from Firebase DB. This function is called by both commands.getMyStats and commands.getPlayerStats. In the case of getMyStats it uses the users discord nickname to get their information. For getPlayerStats the players information is unpacked from the specified member in the getPlayerStats function and the stats are retrieved using that information. This code gets the season ID from the channel that it was called in. It then fetches the player's statistics.
+If the player data is found and contains statistics, it returns a dictionary containing the player's statistics data along with first name, last name, and number. If the player data is not found or does not contain statistics, it returns None.
 - Parameters:
   - interaction: The interaction object representing the context of the command.
   - first_name (optional): The first name of the player.
   - last_name (optional): The last name of the player.
   - number (optional): The number associated with the player.
-  
-- Usage: 
+- Usage: This retrieves the statistics data of the player named "Sidney Crosby" with number "87" for the current season. 
   ```python
-  player_data = await get_player_data(interaction, first_name="John", last_name="Doe", number="10")
+  player_data = await get_player_data(interaction, first_name="Sidney", last_name="Crosby", number="87")
+  ```
+
 
   
 
