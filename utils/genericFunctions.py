@@ -121,38 +121,27 @@ def get_roster(interaction):
 
     for player in db.collection(season_id).document('roster').collection('skaters').stream():
         playerDictionary = player.to_dict()
-        rosteredSkaters.append(
-            [int(playerDictionary['number']), playerDictionary['first_name'], playerDictionary['last_name']])
+        number = playerDictionary['number']
+        rosteredSkaters.append(playerDictionary['first_name'] + ' ' + playerDictionary['last_name'] + f' [{number}]')
 
     for player in db.collection(season_id).document('roster').collection('goalies').stream():
         playerDictionary = player.to_dict()
-        rosteredGoalies.append(
-            [int(playerDictionary['number']), playerDictionary['first_name'], playerDictionary['last_name']])
+        number = playerDictionary['number']
+        rosteredSkaters.append(playerDictionary['first_name'] + ' ' + playerDictionary['last_name'] + f' [{number}]')
 
     return rosteredSkaters, rosteredGoalies
 
 
 def get_pending(attendees, maybes, nos, rosters):
-    responded = []
-    for item in attendees + maybes + nos:
-        item = item.split(' ')
-        responded.append([item[0] + ' ' + item[1] + ' ' + item[2]])
-
-    pop_index = []
-
-    for index, name in enumerate(rosters):
-        playerID = [name[1] + ' ' + name[2] + f' [{name[0]}]']
-        if playerID in responded:
-            pop_index.append(index)
-
-    pop_index.sort(reverse=True)
-
-    [rosters.pop(index) for index in pop_index]
+    responded = attendees + maybes + nos
 
     popped_rosters = []
 
-    for player in rosters:
-        popped_rosters.append(player[1] + ' ' + player[2] + f' [{player[0]}]')
+    for index, name in enumerate(rosters):
+        if name in responded or name + ' ' + '[A]' in responded or name + ' ' + '[C]' in responded:
+            continue
+        else:
+            popped_rosters.append(name)
 
     return popped_rosters
 

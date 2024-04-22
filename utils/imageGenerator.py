@@ -13,9 +13,10 @@ async def imageGenerator(interaction):
     def rosterLookup(playerName, roster):
         if playerName:
             for i, playerData in enumerate(roster):
+                name_parts = playerData.replace('[', '').replace(']', '').split(' ')
+                _, _, number = name_parts[:3]
                 if playerName in playerData:
-                    playerNumber = roster[i][0]
-                    return f'{playerNumber} - ' + playerName
+                    return f'{number} - ' + playerName
             return '## - ' + playerName
         else:
             return ' '
@@ -84,8 +85,6 @@ async def imageGenerator(interaction):
 
     Base_Lineup_Image = bucket.blob(Base_Lineup_Image_Path).download_as_text()
     Dennis_Base_Lineup_Image = bucket.blob(Dennis_Base_Lineup_Image_Path).download_as_text()
-
-    skaters, goalies = get_roster(interaction)
 
     if next_game_time and next_game_date:
         addGameInfo(Base_Lineup_Image,
