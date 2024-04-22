@@ -13,12 +13,12 @@
 - Usage: /getlines
 
 ## /getgametime
-- Description: 
-- Usage:
+- Description: Returns the date, time, and opponent of the next game in the schedule. This command will only work when it is used in a text channel associated with a season. The bot will inform the user if it is used in an incorrect channel.
+- Usage: /getgametime
 
 ## /avatar
-- Description: 
-- Usage:
+- Description: Sends the avatar image of the specified user back to the channel it was used in.
+- Usage: /avatar [discord.member: discord user]
 
 # Captain Commands
 ## /setlines 
@@ -31,9 +31,12 @@
 
 ## /addnormie
 - Description: This command should only be used in cases where someone is not in the discord server, this command can be easily screwed up and cause complications in the database. This command functions in the same way as /addplayer but all of the players data must be input mannually.
-- Usage: /addnormie []
+- Usage: /addnormie [str: first name] [str: last name] [str: number] [str: postition] [str: status] [bool: is captain] [str: handedness]
 
 ## /importrsvps
-- Description:
-- Usage: 
+- Description: Command which will be depreciated in the next update of the bot. Manually transfers the RSVPs from the Firebase DB to the google sheet. In the future this will automatically happen in on_raw_message_edit. It uses the game ID (date of the game in MM-DD-YYYY format) as an argument to ensure that the correct RSVPs are imported.
+- Usage: /importrsvps [str: game id (Date in MM-DD-YYYY format)]
+
+# Utils 
+# Generic Functions #
 
