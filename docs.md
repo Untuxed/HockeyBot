@@ -42,8 +42,8 @@
 ## checkDuplicatePlayer(collection_name: str, player_id: str)
 - Description: This function checks for the existence of a player ID within a specified collection in the database.
 - Usage: The below code will check if a player with the ID "player123" exists in the "players" collection within the Firebase DB. It returns True if the player ID already exists, otherwise False.
-```python
-is_duplicate = checkDuplicatePlayer("players", "player123")
-```
+  ```python
+  is_duplicate = checkDuplicatePlayer("players", "player123")
+  ```
   
 
