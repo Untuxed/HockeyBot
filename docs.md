@@ -113,5 +113,5 @@ If the player data is found and contains statistics, it returns a dictionary con
   - interaction: The interaction object representing the context of the command.
 - Usage: The below usage returns Firestore.object files which must be translated to dictionary objects to iterate through later on. Returning them as objects is probably the most efficent usage of this function though.
   ```python
-  skaters_stream, goalies_stream = get_roster(interaction)
+  skaters_firebase_object, goalies_firebase_object = get_roster(interaction)
   ```
