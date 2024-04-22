@@ -10,36 +10,41 @@ def checkDuplicatePlayer(collection_name: str, player_id: str):
     return False
 
 
-async def get_player_data(first_name: str, last_name: str, number: str):
+async def get_player_data(interaction, first_name = None, last_name = None, number = None):
+    if first_name is None:
+        first_name, last_name, number = interaction.user.nick.replace('[', '').replace(']', '').split(' ')
+
+    season_id = get_season_id(interaction)
+
     # Get the player's data from Firestore
     playerID = f'{first_name}_{last_name}_{number}'  # stored as firstName_lastName_number in firestore
-    player_ref = db.collection('statistics').document(playerID)  # get db reference
-    player = player_ref.get()
+    stats_ref = db.collection(season_id).document('roster').collection('skaters').document(playerID)
+    player_data = stats_ref.get().to_dict()
 
-    if not player.exists:
+    if not player_data or 'stats' not in player_data:
         return None
 
-    player_data = player.to_dict()
+    # Extract the stats data from the player data
+    stats_data = player_data['stats']
 
-    # Add these to the player_data dictionary
-    player_data['first_name'] = first_name
-    player_data['last_name'] = last_name
-    player_data['number'] = number
-    player_data['id'] = player.id
-    return player_data
+    # Add these to the stats_data dictionary
+    stats_data['first_name'] = first_name
+    stats_data['last_name'] = last_name
+    stats_data['number'] = number
+    return stats_data
 
 
-def generate_stats_message(player_data: dict):
+def generate_stats_message(stats_data: dict):
     # Generate the stats message
-    stats_message = f"Player: {player_data['first_name']} {player_data['last_name']}\n" \
-                    f"Games Played: {player_data['gp']}\n" \
-                    f"Goals: {player_data['goals']}\n" \
-                    f"Assists: {player_data['assists']}\n" \
-                    f"Points: {player_data['points']}\n" \
-                    f"PPG: {player_data['ppg']}\n" \
-                    f"PIMs: {player_data['pims']}"
+    stats_message = f"Player: {stats_data['first_name']} {stats_data['last_name']}\n" \
+                    f"Games Played: {stats_data['GP']}\n" \
+                    f"Goals: {stats_data['Goals']}\n" \
+                    f"Assists: {stats_data['Assists']}\n" \
+                    f"Points: {stats_data['Points']}\n" \
+                    f"PPG: {stats_data['PPG']}\n" \
+                    f"Plus/Minus: {stats_data['Plus/Minus']}\n" \
+                    f"PIMs: {stats_data['PIMs']}"
     return stats_message
-
 
 # region linebuilderv2 functions
 def get_season_and_game_id(message):
