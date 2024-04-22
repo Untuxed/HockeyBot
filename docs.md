@@ -62,6 +62,11 @@ If the player data is found and contains statistics, it returns a dictionary con
   player_data = await get_player_data(interaction, first_name="Sidney", last_name="Crosby", number="87")
   ```
 
+## generate_stats_message(stats_data: dict)
+- Description: This function generates a formatted message containing statistics data for a player, which is then sent using commands.getMyStats and commands.getPlayerStats.  It takes a dictionary `stats_data` as input, which must contain the player's first name, last name, and various statistics such as games played (GP), goals, assists, points, points per game (PPG), plus/minus, and penalties in minutes (PIMs). The function constructs a message with these statistics in a readable format.
+- Parameters:
+  - stats_data (dict): A dictionary containing the player's statistics data, including keys such as 'first_name', 'last_name', 'GP', 'Goals', 'Assists', 'Points', 'PPG', 'Plus/Minus', and 'PIMs'.
+- Usage: This should only be called by another function where the stats dictionary is properly formatted. If the stats message is not properly formatted this will cause an error.
 
   
 
