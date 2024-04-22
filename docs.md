@@ -68,5 +68,25 @@ If the player data is found and contains statistics, it returns a dictionary con
   - stats_data (dict): A dictionary containing the player's statistics data, including keys such as 'first_name', 'last_name', 'GP', 'Goals', 'Assists', 'Points', 'PPG', 'Plus/Minus', and 'PIMs'.
 - Usage: This should only be called by another function where the stats dictionary is properly formatted. If the stats message is not properly formatted this will cause an error.
 
-  
+## get_season_and_game_id(message)
+- Description: This function extracts the season ID, game ID, game time, and opponent from a sesh event message. It utilizes the `get_season_id()` function to retrieve the season ID from the event. By default season ID is the category name in discord. It then parses information from the embed within the message to extract the game title, time, and opponent. The game ID is generated based on the formatted game time. Finally, it returns the extracted season ID, game ID, game time, and opponent. This function will work with a malformed sesh ecent message, although the opponent name will not be displayed properly. 
+- Parameters:
+  - message: The sesh event object containing information about the game.
+- Usage: The below will return all of the information to separate values which can then be used elsewhere.
+  ```python
+  season_id, game_id, game_time, opponent = get_season_and_game_id(message)
+  ```
+  This will return a list object with each of the variables as an index.
+  ```python
+  game_information = get_season_and_game_id(message)
+  ```
+
+## get_season_id(messageish)
+- Description: This function extracts the season ID (by default the category name in discord server) from a discord.message or discord.interaction object. It retrieves the category name of the channel from which the message is sent and formats it into a suitable season ID format. The season ID is created by replacing whitespace with underscores and converting to lowercase.
+- Parameters:
+  - messageish: The discord.message or discord.interaction object from which the season ID (category name in discord server) is to be extracted.
+- Usage: This returns the season_id for the discord channel where messageish was typed in.
+  ```python
+  season_id = get_season_id(messageish)
+  ```
 
