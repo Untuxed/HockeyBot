@@ -9,9 +9,10 @@ async def getPlayerStats(interaction: discord.Interaction, member: discord.Membe
 
     try:
         # Try to get the player
-        player = await get_player_data(first_name, last_name, number)
-        # If the player was found, send their stats
+        player = await get_player_data(interaction, first_name, last_name, number)
+
         stats_message = generate_stats_message(player)
+
         await interaction.response.send_message(stats_message, ephemeral=True)
 
     except ValueError:
