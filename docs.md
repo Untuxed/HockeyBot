@@ -41,9 +41,26 @@
 # Generic Functions #
 ## checkDuplicatePlayer(collection_name: str, player_id: str)
 - Description: This function checks for the existence of a player ID within a specified collection in the database.
+- Parameters:
+  - collection_name (str): The name of the collection in the Firestore database where the player data is stored.
+  - player_id (str): The unique identifier of the player whose existence needs to be checked within the specified collection.
 - Usage: The below code will check if a player with the ID "player123" exists in the "players" collection within the Firebase DB. It returns True if the player ID already exists, otherwise False.
   ```python
   is_duplicate = checkDuplicatePlayer("players", "player123")
   ```
+
+## get_player_data(interaction, first_name=None, last_name=None, number=None)
+- Description: This asynchronous function retrieves data of a player from Firestore based on provided parameters such as first name, last name, and number. If not provided, it extracts these details from the interaction user's nickname. It then fetches the player's statistics data for a specific season from Firestore.
+
+- Parameters:
+  - interaction: The interaction object representing the context of the command.
+  - first_name (optional): The first name of the player.
+  - last_name (optional): The last name of the player.
+  - number (optional): The number associated with the player.
+  
+- Usage: 
+  ```python
+  player_data = await get_player_data(interaction, first_name="John", last_name="Doe", number="10")
+
   
 
