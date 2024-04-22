@@ -104,18 +104,7 @@ async def imageGenerator(interaction):
     else:
         return
 
-    rosteredSkaters = []
-    rosteredGoalies = []
-
-    for player in skaters:
-        playerDictionary = player.to_dict()
-        rosteredSkaters.append(
-            [int(playerDictionary['number']), playerDictionary['first_name'], playerDictionary['last_name']])
-
-    for player in goalies:
-        playerDictionary = player.to_dict()
-        rosteredGoalies.append(
-            [int(playerDictionary['number']), playerDictionary['first_name'], playerDictionary['last_name']])
+    rosteredSkaters, rosteredGoalies = get_roster(interaction)
 
     Forwards = [
         [
