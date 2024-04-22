@@ -61,6 +61,10 @@ If the player data is found and contains statistics, it returns a dictionary con
   ```python
   player_data = await get_player_data(interaction, first_name="Sidney", last_name="Crosby", number="87")
   ```
+  This will retrieve the stats data of the player who sent the message stored in the discord.interaction argument.
+  ```python
+  player_data = await get_player_data(interaction)
+  ```
 
 ## generate_stats_message(stats_data: dict)
 - Description: This function generates a formatted message containing statistics data for a player, which is then sent using commands.getMyStats and commands.getPlayerStats.  It takes a dictionary `stats_data` as input, which must contain the player's first name, last name, and various statistics such as games played (GP), goals, assists, points, points per game (PPG), plus/minus, and penalties in minutes (PIMs). The function constructs a message with these statistics in a readable format.
@@ -90,3 +94,24 @@ If the player data is found and contains statistics, it returns a dictionary con
   season_id = get_season_id(messageish)
   ```
 
+## get_game_date(interaction)
+- Description: This function retrieves the date, time, and opponent of the next game from the Firestore database based on the discord.interaction that is passed in as an argument. It exclusively returns the date, time, and opponent of the next game only. 
+- Parameters:
+  - interaction: The interaction object representing the context of the command.
+- Usage: The below will return all of the information as individual variables.
+  ```python
+  next_game_date, next_game_time, opponent = get_game_date(interaction)
+  ```
+  This will return a list object with each of the variables as an index.
+  ```python
+  next_game_date, next_game_time, opponent = get_game_date(interaction)
+  ```
+
+## get_roster(interaction)
+- Description: This function retrieves the roster of skaters and goalies for a season based on the category that it is called in, this function will be updated to specify a specific season if the user wants. It queries the Firestore database to retrieve the skaters and goalies roster collections separately.
+- Parameters:
+  - interaction: The interaction object representing the context of the command.
+- Usage: The below usage returns Firestore.object files which must be translated to dictionary objects to iterate through later on. Returning them as objects is probably the most efficent usage of this function though.
+  ```python
+  skaters_stream, goalies_stream = get_roster(interaction)
+  ```
