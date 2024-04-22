@@ -37,3 +37,6 @@
 - Description: Command which will be depreciated in the next update of the bot. Manually transfers the RSVPs from the Firebase DB to the google sheet. In the future this will automatically happen in on_raw_message_edit. It uses the game ID (date of the game in MM-DD-YYYY format) as an argument to ensure that the correct RSVPs are imported.
 - Usage: /importrsvps [str: game id (Date in MM-DD-YYYY format)]
 
+# Utils 
+# Generic Functions #
+
