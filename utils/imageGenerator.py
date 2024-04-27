@@ -108,7 +108,7 @@ async def imageGenerator(interaction):
 
     Forwards = [
         [
-            name.split()[0] for name in sublist
+            name.split()[0] if name else '' for name in sublist
         ] for sublist in cellOperations.Get_Cell_Range(sheets.FORWARDS_LINEUP_RANGE)]
 
     if not Forwards:
