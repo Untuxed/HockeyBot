@@ -9,14 +9,16 @@ async def importStats(interaction: discord.Interaction):
     await interaction.response.send_message("Updating player stats...", ephemeral=True)
 
     # Get the player stats from the Google Sheet
-    response = SHEET.values().get(spreadsheetId=VOODOO_SHEET_ID, range=STATS_SHEET_RANGE).execute()
-    stats_data = response.get('values', [])
+    skaters_response = SHEET.values().get(spreadsheetId=VOODOO_SHEET_ID, range=SKATERS_STATS_SHEET_RANGE).execute()
+    skaters_stats_data = skaters_response.get('values', [])
+
+    goalie_response = SHEET.values().get(spreadsheetId=VOODOO_SHEET_ID, range=GOALIES_STATS_SHEET_RANGE).execute()
+    goalie_stats_data = goalie_response.get('values', [])
 
     season_id = get_season_id(interaction)
 
     # Parse the stats data
-    player_stats = {}
-    for row in stats_data:
+    for row in skaters_stats_data:
         number, first_name, last_name, gp, goals, assists, points, pims, plus_minus, ppg = row
         player_id = f"{first_name}_{last_name}_{number}"
         stats = {
@@ -28,11 +30,20 @@ async def importStats(interaction: discord.Interaction):
             "Plus/Minus": int(plus_minus),
             "PPG": float(ppg)
         }
-        player_stats[player_id] = stats
-
-    # Update the player stats in Firebase
-    for player_id, stats in player_stats.items():
         db.collection(season_id).document('roster').collection('skaters').document(player_id).set({'stats': stats}, merge=True)
+
+    for row in goalie_stats_data:
+        number, first_name, last_name, gp, ga, gaa, w, l, pims = row
+        player_id = f"{first_name}_{last_name}_{number}"
+        stats = {
+            "GP": int(gp),
+            "GA": int(ga),
+            "GAA": float(gaa),
+            "Wins": int(w),
+            "Losses": int(l),
+            "PIMs": int(pims)
+        }
+        db.collection(season_id).document('roster').collection('goalies').document(player_id).set({'stats': stats}, merge=True)
 
     # Edit the initial response to indicate that the player stats have been updated
     await interaction.edit_original_response(content="Player stats have been updated in Firebase.")

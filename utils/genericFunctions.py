@@ -18,32 +18,68 @@ async def get_player_data(interaction, first_name=None, last_name=None, number=N
 
     # Get the player's data from Firestore
     playerID = f'{first_name}_{last_name}_{number}'  # stored as firstName_lastName_number in firestore
-    stats_ref = db.collection(season_id).document('roster').collection('skaters').document(playerID)
-    player_data = stats_ref.get().to_dict()
 
-    if not player_data or 'stats' not in player_data:
-        return None
+    skater_stats_ref = db.collection(season_id).document('roster').collection('skaters').document(playerID)
+    skater_data = skater_stats_ref.get().to_dict()
 
-    # Extract the stats data from the player data
-    stats_data = player_data['stats']
+    goalie_stats_ref = db.collection(season_id).document('roster').collection('goalies').document(playerID)
+    goalie_data = goalie_stats_ref.get().to_dict()
 
-    # Add these to the stats_data dictionary
-    stats_data['first_name'] = first_name
-    stats_data['last_name'] = last_name
-    stats_data['number'] = number
-    return stats_data
+    if not skater_data or 'stats' not in skater_data:
+        skater_stats_data = None
+    
+    if not goalie_data or 'stats' not in goalie_data:
+        goalie_stats_data = None
+    
+    if skater_data is not None and 'stats' in skater_data:
+        # Extract the stats data from the player data
+        skater_stats_data = skater_data['stats']
+
+        # Add these to the stats_data dictionary
+        skater_stats_data['first_name'] = first_name
+        skater_stats_data['last_name'] = last_name
+        skater_stats_data['position'] = skater_data['position']
+        skater_stats_data['number'] = number
+    
+    if goalie_data is not None and 'stats' in goalie_data:
+        # Extract the stats data from the player data
+        goalie_stats_data = goalie_data['stats']
+
+        # Add these to the stats_data dictionary
+        goalie_stats_data['first_name'] = first_name
+        goalie_stats_data['last_name'] = last_name
+        goalie_stats_data['position'] = goalie_data['position']
+        goalie_stats_data['number'] = number
+
+    return skater_stats_data, goalie_stats_data
 
 
-def generate_stats_message(stats_data: dict):
+def generate_stats_message(skater_stats_data: dict, goalie_stats_data: dict):
+    stats_message = '\n'
     # Generate the stats message
-    stats_message = f"Player: {stats_data['first_name']} {stats_data['last_name']}\n" \
-                    f"Games Played: {stats_data['GP']}\n" \
-                    f"Goals: {stats_data['Goals']}\n" \
-                    f"Assists: {stats_data['Assists']}\n" \
-                    f"Points: {stats_data['Points']}\n" \
-                    f"PPG: {stats_data['PPG']}\n" \
-                    f"Plus/Minus: {stats_data['Plus/Minus']}\n" \
-                    f"PIMs: {stats_data['PIMs']}"
+    if skater_stats_data is not None:
+        stats_message = stats_message + \
+                        f"**Player**: {skater_stats_data['first_name']} {skater_stats_data['last_name']} (Position: {skater_stats_data['position']})\n" \
+                        f"Games Played: {skater_stats_data['GP']}\n" \
+                        f"Goals: {skater_stats_data['Goals']}\n" \
+                        f"Assists: {skater_stats_data['Assists']}\n" \
+                        f"Points: {skater_stats_data['Points']}\n" \
+                        f"PPG: {skater_stats_data['PPG']}\n" \
+                        f"Plus/Minus: {skater_stats_data['Plus/Minus']}\n" \
+                        f"PIMs: {skater_stats_data['PIMs']}"
+        
+    if goalie_stats_data is not None:
+        if not stats_message == '\n':
+            stats_message = stats_message + '\n\n'
+
+        stats_message = stats_message + \
+                        f"**Player**: {goalie_stats_data['first_name']} {goalie_stats_data['last_name']} (Position: {goalie_stats_data['position']})\n" \
+                        f"Games Played: {goalie_stats_data['GP']}\n" \
+                        f"Goals Against: {goalie_stats_data['GA']}\n" \
+                        f"Goals Against Average: {goalie_stats_data['GAA']}\n" \
+                        f"Wins: {goalie_stats_data['Wins']}\n" \
+                        f"Losses: {goalie_stats_data['Losses']}\n" \
+                        f"PIMs: {goalie_stats_data['PIMs']}"
     return stats_message
 
 # region linebuilderv2 functions
