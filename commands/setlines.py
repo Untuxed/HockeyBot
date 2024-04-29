@@ -17,4 +17,4 @@ async def setLines(interaction: discord.Interaction):
     if not Lineup_File_Name:
         await interaction.followup.send('Something went wrong, looking into it.')
     else:
-        await interaction.followup.send('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
+        sent_message = await interaction.followup.send('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
