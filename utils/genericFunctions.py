@@ -3,21 +3,22 @@ import re
 import datetime
 
 
+# region Check duplicate player 
 def checkDuplicatePlayer(collection_name: str, player_id: str):
     collection_ref = db.collection(collection_name).document(player_id)
     if collection_ref.get().exists:
         return True
     return False
+# endregion
 
-
+# region Get player data for stats
 async def get_player_data(interaction, first_name=None, last_name=None, number=None):
     if first_name is None:
         first_name, last_name, number = interaction.user.nick.replace('[', '').replace(']', '').split(' ')
 
     season_id = get_season_id(interaction)
 
-    # Get the player's data from Firestore
-    playerID = f'{first_name}_{last_name}_{number}'  # stored as firstName_lastName_number in firestore
+    playerID = f'{first_name}_{last_name}_{number}'
 
     skater_stats_ref = db.collection(season_id).document('roster').collection('skaters').document(playerID)
     skater_data = skater_stats_ref.get().to_dict()
@@ -32,28 +33,25 @@ async def get_player_data(interaction, first_name=None, last_name=None, number=N
         goalie_stats_data = None
     
     if skater_data is not None and 'stats' in skater_data:
-        # Extract the stats data from the player data
         skater_stats_data = skater_data['stats']
 
-        # Add these to the stats_data dictionary
         skater_stats_data['first_name'] = first_name
         skater_stats_data['last_name'] = last_name
         skater_stats_data['position'] = skater_data['position']
         skater_stats_data['number'] = number
     
     if goalie_data is not None and 'stats' in goalie_data:
-        # Extract the stats data from the player data
         goalie_stats_data = goalie_data['stats']
 
-        # Add these to the stats_data dictionary
         goalie_stats_data['first_name'] = first_name
         goalie_stats_data['last_name'] = last_name
         goalie_stats_data['position'] = goalie_data['position']
         goalie_stats_data['number'] = number
 
     return skater_stats_data, goalie_stats_data
+# endregion
 
-
+# region Generate stats message to send to the discord
 def generate_stats_message(skater_stats_data: dict, goalie_stats_data: dict):
     stats_message = '\n'
     # Generate the stats message
@@ -81,12 +79,12 @@ def generate_stats_message(skater_stats_data: dict, goalie_stats_data: dict):
                         f"Losses: {goalie_stats_data['Losses']}\n" \
                         f"PIMs: {goalie_stats_data['PIMs']}"
     return stats_message
+# endregion
 
-# region linebuilderv2 functions
+# region Linebuilderv2 functions
 def get_season_and_game_id(message):
     season_id = get_season_id(message)
 
-    # get game information from embed to use as document id
     if message.embeds:
         game_title = message.embeds[0].title
         match = re.search(r':calendar_spiral: (.+)', game_title)
@@ -105,50 +103,43 @@ def get_season_and_game_id(message):
     return season_id, game_id, gametime, opponent
 # endregion
 
+# region Get season ID
 def get_season_id(messageish):
-    category_name = messageish.channel.category.name  # season_id gets created from category name in discord
+    category_name = messageish.channel.category.name 
     season_id = re.sub(r'\s+', '_', category_name).lower()
     return season_id
+# endregion
 
-# region finding dates from firebase
+# region Get next game date
 def get_game_date(interaction):
     opponent = None 
     season_id = interaction.channel.category.name.lower().replace(' ', '_')
     games_db_ref = db.collection(season_id).document('games')
 
-    # Get today's date
     today = datetime.date.today()
 
-    # Initialize the next game time and date
     next_game_time = None
     next_game_date = None
 
-    # Iterate over all game collections
     for game in games_db_ref.collections():
-        game_date_str = game.id  # The collection id is the game date in mm-dd-yyyy format
-
-        # Check if the document id can be parsed as a date
+        game_date_str = game.id 
         try:
             game_date = datetime.datetime.strptime(game_date_str, '%m-%d-%Y').date()
         except ValueError:
-            continue  # Skip this document if its id cannot be parsed as a date
-        # Check if the game date is in the future
+            continue
+
         if game_date >= today:
-            # Get the game info
             game_info = game.document('game-info').get()
 
-            # Check if this game is earlier than the currently found next game
             if next_game_date is None or game_date < next_game_date:
                 next_game_date = game_date
                 next_game_time = datetime.datetime.strptime(game_info.get('gametime'), '%H:%M').strftime('%I:%M %p')
-                opponent = game_info.get('opponent')  # Get the opponent
+                opponent = game_info.get('opponent')
 
     return next_game_date, next_game_time, opponent
-
-
 # endregion
 
-# region, get full roster
+# region Get full roster
 def get_roster(interaction):
     season_id = get_season_id(interaction)
 
@@ -166,8 +157,9 @@ def get_roster(interaction):
             [int(playerDictionary['number']), playerDictionary['first_name'], playerDictionary['last_name']])
 
     return rosteredSkaters, rosteredGoalies
+# endregion
 
-
+# region Get pending
 def get_pending(attendees, maybes, nos, rosters):
     responded = []
     for item in attendees + maybes + nos:
@@ -191,4 +183,4 @@ def get_pending(attendees, maybes, nos, rosters):
         popped_rosters.append(player[1] + ' ' + player[2] + f' [{player[0]}]')
 
     return popped_rosters
-
+# endregion
