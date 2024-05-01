@@ -17,4 +17,9 @@ async def setLines(interaction: discord.Interaction):
     if not Lineup_File_Name:
         await interaction.followup.send('Something went wrong, looking into it.')
     else:
-        sent_message = await interaction.followup.send('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
+        lineup_embed = discord.Embed(title='Lineup Embed Test 1', description='This is a test of the embed system')
+        lineup_embed.set_image(url='https://firebasestorage.googleapis.com/v0/b/voodoobot.appspot.com/o/LineupImages%2FlineupWithName_05-01-2024.png?alt=media&token=e19f07b4-da33-4b0a-b4ae-4fb9a143c99a')
+        sent_message = await interaction.followup.send('**Latest Lineup Card**', embed=lineup_embed)
+        print(sent_message)
+        # sent_message = await interaction.followup.send('**Latest Lineup Card**', file=discord.File(fp=Lineup_File_Name))
+        
