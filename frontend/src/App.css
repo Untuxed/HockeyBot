@@ -1,0 +1,69 @@
+/* .App-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  font-size: calc(10px + 1.5vmin);
+} */
+
+.line-builder-container {
+  display: flex;
+  justify-content: flex-start;
+  margin: 5%;
+}
+
+.line-containers-container {
+  width: 70%;
+  text-align: center;
+}
+
+.line-container {
+  border: solid 1px black;
+}
+
+.player-pool {
+  width: 30%;
+}
+
+.players {
+  list-style: none;
+  padding-left: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    border: solid 2px #d0d0d0;
+    border-radius: .2em;
+    padding: .5em .8em .5em .5em;
+  }
+
+  p {
+    max-width: none;
+    font-weight: bold;
+    margin: 0;
+  }
+}
+
+.on-line {
+  display: flex;
+  justify-content: space-between;
+  li {
+    display: flex;
+    align-items: center;
+    border: solid 2px #d0d0d0;
+    border-radius: .2em;
+    padding: .5em .8em .5em .5em;
+    width: 25%;
+  }
+}
+
+.attendee {
+  background: lightgreen;
+}
+
+.maybe {
+  background: yellow;
+}
+
+.no {
+  background: lightcoral;
+}
