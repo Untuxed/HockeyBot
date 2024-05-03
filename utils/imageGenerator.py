@@ -1,5 +1,5 @@
 import cv2
-from datetime import datetime
+from datetime import datetime, timedelta
 from utils.genericFunctions import get_game_date, get_roster, get_season_and_game_id
 import services.cellOperations as cellOperations
 import services.sheets as sheets
@@ -56,11 +56,11 @@ async def imageGenerator(interaction):
     def writeTempFiles(desc, custom=''):
         image_blob_name = f'LineupImages/{custom}lineupWithName_{game_id}.png'
         description = desc
-        image_firebase_database_reference = db.collection(season_id).document('games').collection(game_id).document(
-            'Lineup_Cards')
+        image_firebase_database_reference = db.collection(season_id).document('games').collection(game_id).document('Lineup_Cards')
         filename = f'./resources/images/temp_{custom}BaseLineupCard.png'
         blob = bucket.blob(image_blob_name)
         blob.upload_from_filename(filename)
+        url = blob.generate_signed_url(expiration=timedelta(days=31))
 
         lineup_doc = db.collection(season_id).document('games').collection(game_id).document('Lineup_Cards').get()
 
@@ -75,7 +75,7 @@ async def imageGenerator(interaction):
                 f'{custom}description': description
             })
 
-        return filename
+        return filename, url
 
     await interaction.response.defer()
     next_game_date, next_game_time, opponent = get_game_date(interaction)
@@ -197,7 +197,7 @@ async def imageGenerator(interaction):
 
 
 def pullImage(interaction):
-    next_game_date, next_game_time, opponent = get_game_date(interaction)
+    next_game_date, _, _ = get_game_date(interaction)
     if next_game_date is None:
         return None, None
     game_id = next_game_date.strftime('%m-%d-%Y')
@@ -209,13 +209,13 @@ def pullImage(interaction):
     db.collection(season_id).document('games').collection(game_id).document('Lineup_Cards').get().to_dict()['image_url']
 
     blob = bucket.blob(normal_image_data_firebase_path)
+    signedURL = blob.generate_signed_url(expiration=timedelta(days=31))
     normal_image = blob.download_as_bytes()
 
     with open(f'./resources/images/temp_BaseLineupCard.png', "wb") as f:
         f.write(normal_image)
 
     if next_game_date:
-        return (f'./resources/images/temp_BaseLineupCard.png',
-                f'./resources/images/temp_Dennis_BaseLineupCard.png')
+        return f'./resources/images/temp_BaseLineupCard.png', signedURL, f'./resources/images/temp_Dennis_BaseLineupCard.png'
     else:
         return

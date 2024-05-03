@@ -14,7 +14,10 @@ def checkDuplicatePlayer(collection_name: str, player_id: str):
 # region Get player data for stats
 async def get_player_data(interaction, first_name=None, last_name=None, number=None):
     if first_name is None:
-        first_name, last_name, number = interaction.user.nick.replace('[', '').replace(']', '').split(' ')
+        player_info = interaction.user.nick.replace('[', '').replace(']', '').split(' ')
+        first_name = player_info[0]
+        last_name = player_info[1]
+        number = player_info[2]
 
     season_id = get_season_id(interaction)
 
@@ -154,7 +157,7 @@ def get_roster(interaction):
     for player in db.collection(season_id).document('roster').collection('goalies').stream():
         playerDictionary = player.to_dict()
         number = playerDictionary['number']
-        rosteredSkaters.append(playerDictionary['first_name'] + ' ' + playerDictionary['last_name'] + f' [{number}]')
+        rosteredGoalies.append(playerDictionary['first_name'] + ' ' + playerDictionary['last_name'] + f' [{number}]')
 
     return rosteredSkaters, rosteredGoalies
 # endregion

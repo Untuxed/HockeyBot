@@ -9,7 +9,7 @@ import os
     guild=GUILD_ID
 )
 async def getLines(interaction: discord.Interaction):
-    Lineup_File_Name, Dennis_Lineup_File_Name = pullImage(interaction)
+    Lineup_File_Name, Lineup_URL, Dennis_Lineup_File_Name = pullImage(interaction)
     
     season_id = get_season_id(interaction)
     
