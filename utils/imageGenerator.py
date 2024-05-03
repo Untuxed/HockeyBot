@@ -67,15 +67,16 @@ async def imageGenerator(interaction):
         if not lineup_doc.exists:
             image_firebase_database_reference.set({
                 f'{custom}image_url': image_blob_name,
-                f'{custom}description': description
+                f'{custom}description': description,
+                f'{custom}signed_url': url
             })
         else:
             image_firebase_database_reference.update({
                 f'{custom}image_url': image_blob_name,
-                f'{custom}description': description
+                f'{custom}description': description,
+                f'{custom}signed_url': url
             })
-
-        return filename, url
+        return
 
     await interaction.response.defer()
     next_game_date, next_game_time, opponent = get_game_date(interaction)
@@ -188,12 +189,12 @@ async def imageGenerator(interaction):
         cv2.imwrite(f'./resources/images/temp_BaseLineupCard.png', Lineup_Image_W_Text)
         cv2.imwrite(f'./resources/images/temp_Dennis_BaseLineupCard.png', Dennis_Lineup_Image_W_Text)
 
-        base_filename = writeTempFiles(desc='Basic Lineup Card')
-        _ = writeTempFiles(desc='Dennis Lineup Card', custom='Dennis_')
+        writeTempFiles(desc='Basic Lineup Card')
+        writeTempFiles(desc='Dennis Lineup Card', custom='Dennis_')
 
-        return base_filename, None
+        return True
     else:
-        return
+        return False
 
 
 def pullImage(interaction):
@@ -205,17 +206,13 @@ def pullImage(interaction):
     category_name = interaction.channel.category.name
     season_id = re.sub(r'\s+', '_', category_name).lower()
 
-    normal_image_data_firebase_path = \
-    db.collection(season_id).document('games').collection(game_id).document('Lineup_Cards').get().to_dict()['image_url']
-
-    blob = bucket.blob(normal_image_data_firebase_path)
-    signedURL = blob.generate_signed_url(expiration=timedelta(days=31))
-    normal_image = blob.download_as_bytes()
-
-    with open(f'./resources/images/temp_BaseLineupCard.png', "wb") as f:
-        f.write(normal_image)
+    lineup_card_dict = db.collection(season_id).document('games').collection(game_id).document('Lineup_Cards').get().to_dict()
 
     if next_game_date:
-        return f'./resources/images/temp_BaseLineupCard.png', signedURL, f'./resources/images/temp_Dennis_BaseLineupCard.png'
+        if 'messageID' in lineup_card_dict:
+            return lineup_card_dict['signed_url'], lineup_card_dict['Dennis_image_url'], lineup_card_dict['messageID']
+        else:
+            return lineup_card_dict['signed_url'], lineup_card_dict['Dennis_image_url'], None
     else:
         return
+    
