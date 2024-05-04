@@ -9,3 +9,5 @@ from commands.getgametime import getGameTime
 from commands.avatar import avatar
 from commands.importstats import importStats
 from commands.updatelines import updateLines
+from commands.syncdb import syncdb
+
