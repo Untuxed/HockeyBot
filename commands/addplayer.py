@@ -19,7 +19,8 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member):
     first_name = str(member.display_name).split()[0]
     last_name = str(member.display_name).split()[1]
     
-    position = 'not specified'
+    skater_position = 'not specified'
+    goalie_position = 'not specified'
     status = 'friend of the program'
     is_captain = False
     handedness = 'not specified'
@@ -32,14 +33,11 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member):
 
     for role in member_roles:
         role = str(role)
-        if role == 'center':
-            position = 'center'
-        elif role == 'forward':
-            position = 'forward'
-        elif role == 'defense':
-            position = 'defense'
-        elif role == 'goalie':
-            position = 'goalie'
+        if role in ['center', 'defense', 'forward']:
+            skater_position = role
+        
+        if role == 'goalie':
+            goalie_position = role
 
         if role == f'{interaction.channel.category.name} Roster':
             status = 'rostered'
@@ -62,17 +60,17 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member):
         'number': int(number),
         'first_name': first_name,
         'last_name': last_name,
-        'position': position,
         'status': status,
         'is_captain': is_captain,
         'handedness': handedness
     }
 
     try:
-        if position == 'not specified':
+        if skater_position == 'not specified' and goalie_position == 'not specified':
             await interaction.response.send_message('No position role assigned.', ephemeral=True)
 
-        if position == 'goalie':
+        if not goalie_position == 'not specified':
+            player_data['position'] = 'goalie'
             player_doc = db.collection(season_id).document('roster').collection('goalies').document(player_id)
             player_info = player_doc.get()
 
@@ -81,7 +79,8 @@ async def addPlayer(interaction: discord.Interaction, member: discord.Member):
             else:
                 player_doc.update(player_data)
 
-        else:
+        if not skater_position == 'not specified':
+            player_data['position'] = skater_position
             player_doc = db.collection(season_id).document('roster').collection('skaters').document(player_id)
             player_info = player_doc.get()
 

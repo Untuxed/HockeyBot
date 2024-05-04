@@ -108,10 +108,42 @@ If the player data is found and contains statistics, it returns a dictionary con
   ```
 
 ## get_roster(interaction)
-- Description: This function retrieves the roster of skaters and goalies for a season based on the category that it is called in, this function will be updated to specify a specific season if the user wants. It queries the Firestore database to retrieve the skaters and goalies roster collections separately.
-- Parameters:
-  - interaction: The interaction object representing the context of the command.
-- Usage: The below usage returns Firestore.object files which must be translated to dictionary objects to iterate through later on. Returning them as objects is probably the most efficent usage of this function though.
-  ```python
-  skaters_firebase_object, goalies_firebase_object = get_roster(interaction)
-  ```
+- Description: Retrieves the roster of skaters and goalies for a given season based on the discord interaction message.
+- Parameters
+    - interaction: The interaction object representing the context of the command.
+- Usage
+    ```python
+    skaters, goalies = get_roster(interaction)
+    ```
+
+## get_pending(attendees, maybes, nos, rosters)
+- Description: Retrieves the list of attendees who have not responded (neither attending nor declining nor unsure) to the scheduled event based on the sesh event that it is handling. Currently is only called with commands.importrsvps.py which will be depreciated and folded into utils.lineBuilder.py.
+- Parameters
+    - attendees: List of players who have confirmed attendance.
+    - maybes: List of players who have marked themselves as "Maybe" attending.
+    - nos: List of players who have declined the event.
+    - rosters: List of all entire roster for the game.
+- Usage
+    ```python
+    pending_attendees = get_pending(attendees, maybes, nos, rosters)
+    ```
+  
+# imageGenerator
+## pullImage(interaction)
+- Description: Pulls the lineup card image for the next game based on the provided interaction. If no upcoming game is found, returns None.
+- Parameters
+    - interaction: The interaction object representing the context of the command.
+- Usage
+    ```python
+    normal_image_path, dennis_image_path = pullImage(interaction)
+    ```
+
+## imageGenerator(interaction)
+- Description
+    Generates lineup card images for the next game based on the provided interaction. The image is created based on the lineup determined in the google sheet. If no upcoming game is found, returns None.
+- Parameters
+    - interaction: The interaction object representing the context of the command.
+- Usage
+    ```python
+    base_filename, _ = await imageGenerator(interaction)
+    ```
