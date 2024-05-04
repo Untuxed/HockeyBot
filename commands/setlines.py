@@ -9,6 +9,7 @@ import re
     guild=GUILD_ID
 )
 async def setLines(interaction: discord.Interaction):
+    await interaction.response.defer()
     did_write_file = await imageGenerator(interaction)
 
     if not did_write_file:
