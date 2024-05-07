@@ -2,7 +2,7 @@ from services.discordStuff import *
 import re
 from datetime import datetime, timedelta
 from services.firebaseStuff import *
-from utils.genericFunctions import get_season_and_game_id
+from utils.genericFunctions import get_season_and_game_id, create_ics_file
 
 
 # region create RSVP document from sesh message
@@ -27,12 +27,21 @@ async def on_message(message):
         print(message.embeds[0].title)
         return
     else:
-        print('firebase')
     # if normal event creation message from sesh, create game documents in db
         season_id, game_id, gametime, opponent = get_season_and_game_id(message)
+        
+        ics_blob_filename = f'ICS_Files/{game_id}.ics'
+        ics_as_bytes = create_ics_file(message)
+
+        blob = bucket.blob(ics_blob_filename)  # Blob object for uploading images
+        
+        # Uploads image from filename and generates a url that can be used for embeds for 31 days by default
+        blob.upload_from_string(ics_as_bytes, content_type='text/calendar')
+        url = blob.generate_signed_url(expiration=timedelta(days=31))
+
         if season_id and game_id:
             db.collection(season_id).document('games').collection(game_id).document('RSVPs').set({})
-            db.collection(season_id).document('games').collection(game_id).document('game-info').set({'gametime': gametime, 'opponent': opponent, 'discord_message_id': message.id})
+            db.collection(season_id).document('games').collection(game_id).document('game-info').set({'gametime': gametime, 'opponent': opponent, 'discord_message_id': message.id, 'ics_url': url})
 
 
 # endregion

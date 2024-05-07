@@ -1,6 +1,7 @@
 from services.firebaseStuff import db
 import re
 import datetime
+import ics
 
 
 # region Check duplicate player TODO: IS THIS FUNCTION DEPRECIATED????
@@ -217,3 +218,22 @@ def get_pending(attendees, maybes, nos, rosters):
 
     return popped_rosters
 # endregion
+
+def create_ics_file(interaction):
+    next_game_date, next_game_time, opponent = get_game_date(interaction)
+
+    cal = ics.Calendar()
+    event = ics.Event()
+    event.name = f"Game Against {opponent}"
+    event.begin = f"{next_game_date} {next_game_time}"
+    cal.events.add(event)
+
+    alarm = ics.DisplayAlarm()
+    alarm.trigger = datetime.timedelta(hours=-1)
+    alarm.description = f"Reminder for Game Against {opponent}"
+    event.alarms.add(alarm)
+
+    # Convert calendar to bytes
+    ics_bytes = cal.to_ical()
+
+    return ics_bytes
