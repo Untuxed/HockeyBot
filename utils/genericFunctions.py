@@ -219,21 +219,17 @@ def get_pending(attendees, maybes, nos, rosters):
     return popped_rosters
 # endregion
 
-def create_ics_file(interaction):
-    next_game_date, next_game_time, opponent = get_game_date(interaction)
+def create_ics_file(game_id, gametime, opponent):
+    game_iso_format = datetime.datetime.strptime(f"{game_id} {gametime}", '%m-%d-%Y %H:%M') + datetime.timedelta(hours=4)
 
     cal = ics.Calendar()
     event = ics.Event()
     event.name = f"Game Against {opponent}"
-    event.begin = f"{next_game_date} {next_game_time}"
+    event.begin = game_iso_format
+    event.duration = datetime.timedelta(hours=1)
     cal.events.add(event)
 
-    alarm = ics.DisplayAlarm()
-    alarm.trigger = datetime.timedelta(hours=-1)
-    alarm.description = f"Reminder for Game Against {opponent}"
-    event.alarms.add(alarm)
-
     # Convert calendar to bytes
-    ics_bytes = cal.to_ical()
+    ics_bytes = cal.serialize()
 
     return ics_bytes

@@ -31,7 +31,7 @@ async def on_message(message):
         season_id, game_id, gametime, opponent = get_season_and_game_id(message)
         
         ics_blob_filename = f'ICS_Files/{game_id}.ics'
-        ics_as_bytes = create_ics_file(message)
+        ics_as_bytes = create_ics_file(game_id, gametime, opponent)
 
         blob = bucket.blob(ics_blob_filename)  # Blob object for uploading images
         
