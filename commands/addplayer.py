@@ -1,38 +1,44 @@
 from services.discordStuff import *
 from services.firebaseStuff import *
-from utils.genericFunctions import get_player_data, get_season_id
+from utils.genericFunctions import get_player_data, get_season_id, player_id_from_discord_nickname
 import re
 
 @tree.command(name='addplayer', description='Adds a Player to the Firestore db', guild=GUILD_ID)
 async def addPlayer(interaction: discord.Interaction, member: discord.Member):
+    """
+    Automatically adding a player to the firebase db based on a discrod username. The discord nickname must be in the format Firstname Lastname [number]. The code then uses discord roles to figure out the rest of the player information. This command can also splits players into two different roster groups 
 
-    season_id = get_season_id(interaction)
+    Parameters:
+    - interaction (discord.Interaction): The discord interaction object from the command call.
+    - member (discord.Member): The discord member to be added to the Firebase db.
 
-    member_roles = member.roles
+    Returns:
+    None
+    """
+    season_id = get_season_id(interaction)  # Get season ID from where the discord interaction.
+    member_roles = member.roles  # Get's all of the roles that have been assigned to the member.
 
-    number_match = re.search(r'\[(\d+)\]', str(member.display_name))
-    if number_match:
-        number = number_match.group(1)  # Extract the matched string
-    else:
-        number = None  # No number found
-
-    first_name = str(member.display_name).split()[0]
-    last_name = str(member.display_name).split()[1]
+    first_name, last_name, number = player_id_from_discord_nickname(str(member.display_name))  # Gets the player's first name, last name, and number from discord ID
     
+    # Default values for the role based arguments
     skater_position = 'not specified'
     goalie_position = 'not specified'
     status = 'friend of the program'
     is_captain = False
     handedness = 'not specified'
 
-    if not first_name:
+    # If the player is not formatted correctly return an error message to the user
+    if not first_name or not last_name or not number:
         await interaction.response.send_message('Invalid nickname format.')
         return
 
-    player_id = f'{first_name}_{last_name}_{number}'
+    player_id = f'{first_name}_{last_name}_{number}'  # Form player ID for firebase
 
+    # Loop for converting user roles to data in the firebase db
     for role in member_roles:
-        role = str(role)
+        role = str(role)  # Converts role to a string
+
+        # If the player is a skater add their role to the skater role
         if role in ['center', 'defense', 'forward']:
             skater_position = role
         

@@ -3,7 +3,7 @@ from services.googleStuff import *
 from googleapiclient.discovery import build
 
 client = gspread.authorize(creds)
-googleDoc = client.open('VoodooSpring2024Lineup')
+googleDoc = client.open('AstroSharksLineup')
 sheet = googleDoc.get_worksheet(0)
 
 # Specify Google Sheet ID and range

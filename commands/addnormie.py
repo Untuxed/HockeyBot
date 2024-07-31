@@ -13,7 +13,7 @@ async def addNormie(interaction: discord.Interaction, first_name: str, last_name
     - first_name (str): Player's first name.
     - last_name (str): Player's last name.
     - number (str): Player's number.
-    - position (str): Player's position (Center, Forward, Defense, and Goalie).
+    - position (str): Player's position (Center, Forward, Defense, Goalie).
     - status (str): Player's status (rostered, substitute, friend-of-the-program).
     - is_captain (bool): Indicates whether the player is a team captain or not.
     - handedness (str): Player's handedness (lefty, righty).

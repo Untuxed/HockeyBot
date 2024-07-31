@@ -26,18 +26,11 @@ async def get_player_data(interaction, first_name=None, last_name=None, number=N
         skater_stats_data (dict): dict of the player's skater stats. (None if player is not a skater)
         skater_stats_data (dict): dict of the player's goalie stats. (None if player is not a goalie)
     """
-    # If player information is not provided, extract it from the user's nickname.
-    if first_name is None:
-        player_info = interaction.user.nick.replace('[', '').replace(']', '').split(' ')
-        first_name = player_info[0]
-        last_name = player_info[1]
-        number = player_info[2]
+    # Gets the players firebase database ID from thier discord username
+    playerID = player_id_from_discord_nickname(str(interaction.user.nick))
 
     # Get current season ID
     season_id = get_season_id(interaction)
-
-    # Creates the players firebase database ID
-    playerID = f'{first_name}_{last_name}_{number}'
 
     # Gets the data from the firebase date for the specific player ID and converts the firebase object to a dictionary
     skater_stats_ref = db.collection(season_id).document('roster').collection('skaters').document(playerID)
@@ -75,6 +68,16 @@ async def get_player_data(interaction, first_name=None, last_name=None, number=N
 
     return skater_stats_data, goalie_stats_data  # Returns both stats dictionaries for formatting into a message
 # endregion
+
+def player_id_from_discord_nickname(player_id: str):
+    player_info = player_id.replace('[', '').replace(']', '').split(' ')
+    # If player information is not provided, extract it from the user's nickname.
+    
+    first_name = player_info[0]
+    last_name = player_info[1]
+    number = player_info[2]
+
+    return f'{first_name}_{last_name}_{number}'
 
 # region Generate stats message to send to the discord
 def generate_stats_message(skater_stats_data: dict, goalie_stats_data: dict):
