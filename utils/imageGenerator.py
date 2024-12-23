@@ -31,7 +31,7 @@ async def imageGenerator(interaction):
         Returns:
             str: The player's number followed by their name if found, otherwise '## - playerName'.
         """
-        if playerName:  # Check if the name that is passed into the function is not None
+        if not playerName == ' ':  # Check if the name that is passed into the function is not None
             for _, playerData in enumerate(roster):  # Iterates through the roster list, used to use player index but that has been depreciated
                 
                 # Split playerData by spaces and remove brackets, then extract the number part
@@ -73,7 +73,8 @@ async def imageGenerator(interaction):
         gameDate = gameDate.strftime('%m-%d')  # Format game date
 
         # Replace placeholder in the base SVG file with game information
-        SVG_Game_Info = baseSVGFile.replace('### REPLACE ME ###', opponentName[3:-2] + ': ' + gameDate + ', ' + gameTime)
+        # SVG_Game_Info = baseSVGFile.replace('### REPLACE ME ###', opponentName[3:-2] + ': ' + gameDate + ', ' + gameTime)
+        SVG_Game_Info = baseSVGFile.replace('### REPLACE ME ###', 'Bandits' + ': ' + '5-11' + ', ' + '6:00PM')
 
         # Write the modified SVG content to a temporary SVG file
         with open(temp_SVG_FilePath, 'w') as file:
@@ -192,7 +193,7 @@ async def imageGenerator(interaction):
     # Get forward lineup data from the google sheet and set default to ' ' if there is no one in the slot
     Forwards = [
         [
-            name.split()[0] if name else '' for name in sublist
+            name.split()[0] if name else ' ' for name in sublist
         ] for sublist in cellOperations.Get_Cell_Range(sheets.FORWARDS_LINEUP_RANGE)]
     
     # If no forwards have been set in the sheet default it to the four line format
@@ -287,8 +288,8 @@ async def imageGenerator(interaction):
         cv2.imwrite(f'./resources/images/temp_Dennis_BaseLineupCard.png', Dennis_Lineup_Image_W_Text)
 
         # Uploads the images to Firebase and saves their URLs for the embeds later
-        writeTempFiles(desc='Basic Lineup Card')
-        writeTempFiles(desc='Dennis Lineup Card', custom='Dennis_')
+        writeTempFiles(description='Basic Lineup Card')
+        writeTempFiles(description='Dennis Lineup Card', custom='Dennis_')
 
         return True  # Return True if successful
     else:
